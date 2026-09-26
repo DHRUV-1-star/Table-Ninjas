@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Freelance Marketplace | Table Ninjas (SVNIT CS203)</title>
+  <meta name="description" content="Production DBMS Prototype for Freelance Marketplace by Table Ninjas (SVNIT CS203) with MySQL 8.0, Node.js, and Express.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Toast Notification System -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Header & Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-logo">
+          <span class="logo-icon">⚡</span>
+        </div>
+        <div class="brand-info">
+          <h1>Table Ninjas <span class="badge badge-accent">Marketplace</span></h1>
+          <span class="brand-sub">SVNIT CS203 Database Management Systems</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs" id="main-nav">
+        <button class="nav-btn active" data-tab="client-tab">
+          <span class="nav-icon">💼</span> Client Portal
+        </button>
+        <button class="nav-btn" data-tab="freelancer-tab">
+          <span class="nav-icon">🚀</span> Freelancer Hub
+        </button>
+        <button class="nav-btn" data-tab="admin-tab">
+          <span class="nav-icon">🛡️</span> Admin Console
+        </button>
+        <button class="nav-btn" data-tab="analytics-tab">
+          <span class="nav-icon">📊</span> SQL Analytics
+        </button>
+      </nav>
+
+      <!-- Active Persona Switcher -->
+      <div class="persona-switcher">
+        <label for="persona-select" class="persona-label">Active Persona:</label>
+        <select id="persona-select" class="form-select select-compact">
+          <!-- Populated dynamically via JS -->
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+
+    <!-- =================================================================== -->
+    <!-- 1. CLIENT PORTAL TAB -->
+    <!-- =================================================================== -->
+    <section id="client-tab" class="tab-pane active">
+      <div class="section-header">
+        <div>
+          <h2>Client Management Center</h2>
+          <p class="section-desc">Post requisitions, inspect incoming bids, award contracts, and disburse milestone escrow.</p>
+        </div>
+        <button class="btn btn-primary" id="btn-open-post-job">
+          <span>➕</span> Post New Job
+        </button>
+      </div>
+
+      <!-- Client Metrics Grid -->
+      <div class="metrics-grid" id="client-metrics-banner">
+        <div class="metric-card glass">
+          <span class="metric-label">Active Client</span>
+          <span class="metric-val" id="client-banner-name">Alice Johnson</span>
+          <span class="metric-sub" id="client-banner-company">TechCorp Solutions Inc.</span>
+        </div>
+        <div class="metric-card glass">
+          <span class="metric-label">Lifetime Spend</span>
+          <span class="metric-val text-success" id="client-banner-spend">$0.00</span>
+          <span class="metric-sub">Verified Escrow Disbursed</span>
+        </div>
+        <div class="metric-card glass">
+          <span class="metric-label">Jobs Posted</span>
+          <span class="metric-val text-accent" id="client-banner-jobs-count">0</span>
+          <span class="metric-sub">Total published requisitions</span>
+        </div>
+        <div class="metric-card glass">
+          <span class="metric-label">Active Contracts</span>
+          <span class="metric-val text-warning" id="client-banner-contracts-count">0</span>
+          <span class="metric-sub">Projects in progress</span>
+        </div>
+      </div>
+
+      <!-- Client Sub-Tabs (Jobs vs Contracts) -->
+      <div class="sub-tabs">
+        <button class="sub-tab-btn active" data-subtab="client-jobs-view">My Posted Jobs & Proposals</button>
+        <button class="sub-tab-btn" data-subtab="client-contracts-view">My Contracts & Milestone Payouts</button>
+      </div>
+
+      <!-- Subview 1: Posted Jobs -->
+      <div id="client-jobs-view" class="sub-pane active">
+        <div class="card glass">
+          <div class="card-header">
+            <h3>Published Requisitions</h3>
+            <button class="btn btn-sm btn-outline" id="btn-refresh-client-jobs">🔄 Refresh</button>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="client-jobs-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Budget</th>
+                  <th>Status</th>
+                  <th>Proposals</th>
+                  <th>Deadline</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="client-jobs-tbody">
+                <tr><td colspan="8" class="text-center py-4">Loading your jobs...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subview 2: Contracts & Milestones -->
+      <div id="client-contracts-view" class="sub-pane">
+        <div class="card glass">
+          <div class="card-header">
+            <h3>Engaged Contracts & Milestone Releases</h3>
+            <button class="btn btn-sm btn-outline" id="btn-refresh-client-contracts">🔄 Refresh</button>
+          </div>
+          <div id="client-contracts-container" class="contracts-list">
+            <p class="text-center py-4">Loading your active engagements...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 2. FREELANCER HUB TAB -->
+    <!-- =================================================================== -->
+    <section id="freelancer-tab" class="tab-pane">
+      <div class="section-header">
+        <div>
+          <h2>Freelancer Workplace</h2>
+          <p class="section-desc">Search opportunities by skill & budget, submit bids, track milestones, and earn verified ratings.</p>
+        </div>
+      </div>
+
+      <!-- Freelancer Profile Header Card -->
+      <div class="freelancer-profile-card glass" id="freelancer-profile-banner">
+        <div class="profile-info">
+          <div class="avatar-large" id="freelancer-banner-avatar">FK</div>
+          <div>
+            <h3 id="freelancer-banner-name">Faisal Khan</h3>
+            <p class="profile-title" id="freelancer-banner-title">Principal Full-Stack Engineer</p>
+            <div class="profile-chips">
+              <span class="badge badge-primary" id="freelancer-banner-rate">$65.00/hr</span>
+              <span class="badge badge-success" id="freelancer-banner-rating">⭐ 5.00 (2 reviews)</span>
+              <span class="badge badge-accent" id="freelancer-banner-completed">2 Jobs Completed</span>
+            </div>
+          </div>
+        </div>
+        <div class="profile-earnings">
+          <span class="earnings-label">Lifetime Platform Earnings</span>
+          <span class="earnings-value" id="freelancer-banner-earnings">$7,500.00</span>
+          <span class="earnings-sub">100% Guaranteed Escrow Release</span>
+        </div>
+      </div>
+
+      <!-- Sub-Tabs (Browse Jobs vs Active Work) -->
+      <div class="sub-tabs">
+        <button class="sub-tab-btn active" data-subtab="freelancer-browse-view">Explore Open Projects</button>
+        <button class="sub-tab-btn" data-subtab="freelancer-contracts-view">My Active Work & Deliverables</button>
+        <button class="sub-tab-btn" data-subtab="freelancer-proposals-view">Submitted Proposals</button>
+      </div>
+
+      <!-- Subview 1: Browse Jobs with Multi-facet search -->
+      <div id="freelancer-browse-view" class="sub-pane active">
+        <!-- Search & Filter Controls -->
+        <div class="filter-panel glass">
+          <div class="filter-row">
+            <div class="filter-group flex-2">
+              <label for="filter-search">Keyword Search</label>
+              <input type="text" id="filter-search" class="form-input" placeholder="Search by title or description (e.g., React, API, AWS)...">
+            </div>
+            <div class="filter-group flex-1">
+              <label for="filter-skill">Required Skill</label>
+              <select id="filter-skill" class="form-select">
+                <option value="">All Skills</option>
+              </select>
+            </div>
+            <div class="filter-group flex-1">
+              <label for="filter-category">Category</label>
+              <select id="filter-category" class="form-select">
+                <option value="">All Categories</option>
+                <option value="Frontend Development">Frontend Development</option>
+                <option value="Backend Development">Backend Development</option>
+                <option value="DevOps & Cloud">DevOps & Cloud</option>
+                <option value="Data Engineering">Data Engineering</option>
+                <option value="Mobile Development">Mobile Development</option>
+                <option value="UI/UX Design">UI/UX Design</option>
+                <option value="Security & Audit">Security & Audit</option>
+                <option value="Database Management">Database Management</option>
+                <option value="Full-Stack Web Dev">Full-Stack Web Dev</option>
+              </select>
+            </div>
+            <div class="filter-group flex-1">
+              <label for="filter-min-budget">Min Budget ($)</label>
+              <input type="number" id="filter-min-budget" class="form-input" placeholder="0" min="0">
+            </div>
+            <div class="filter-group flex-1">
+              <label for="filter-max-budget">Max Budget ($)</label>
+              <input type="number" id="filter-max-budget" class="form-input" placeholder="10000" min="0">
+            </div>
+            <div class="filter-group filter-actions">
+              <label>&nbsp;</label>
+              <button class="btn btn-secondary" id="btn-reset-filters">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Open Jobs Feed -->
+        <div class="jobs-feed" id="freelancer-jobs-container">
+          <p class="text-center py-4">Loading open jobs...</p>
+        </div>
+      </div>
+
+      <!-- Subview 2: Freelancer Active Contracts -->
+      <div id="freelancer-contracts-view" class="sub-pane">
+        <div class="card glass">
+          <div class="card-header">
+            <h3>Active Project Assignments</h3>
+            <button class="btn btn-sm btn-outline" id="btn-refresh-freelancer-contracts">🔄 Refresh</button>
+          </div>
+          <div id="freelancer-contracts-container" class="contracts-list">
+            <p class="text-center py-4">Loading assignments...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subview 3: Freelancer Submitted Proposals -->
+      <div id="freelancer-proposals-view" class="sub-pane">
+        <div class="card glass">
+          <div class="card-header">
+            <h3>My Proposal Bids</h3>
+            <button class="btn btn-sm btn-outline" id="btn-refresh-freelancer-proposals">🔄 Refresh</button>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="freelancer-proposals-table">
+              <thead>
+                <tr>
+                  <th>Job Title</th>
+                  <th>Client</th>
+                  <th>My Bid</th>
+                  <th>Timeline</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="freelancer-proposals-tbody">
+                <tr><td colspan="6" class="text-center py-4">Loading submitted proposals...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 3. ADMIN CONSOLE TAB -->
+    <!-- =================================================================== -->
+    <section id="admin-tab" class="tab-pane">
+      <div class="section-header">
+        <div>
+          <h2>System Administration & Platform Governance</h2>
+          <p class="section-desc">Arbitrate contested milestone disputes, audit platform users, and inspect relational integrity.</p>
+        </div>
+        <button class="btn btn-sm btn-outline" id="btn-refresh-admin">🔄 Refresh All Data</button>
+      </div>
+
+      <!-- Admin Platform Stats -->
+      <div class="metrics-grid" id="admin-stats-grid">
+        <div class="metric-card glass">
+          <span class="metric-label">Total Users</span>
+          <span class="metric-val text-accent" id="admin-stat-users">14</span>
+          <span class="metric-sub">Clients & Freelancers</span>
+        </div>
+        <div class="metric-card glass">
+          <span class="metric-label">Job Postings</span>
+          <span class="metric-val text-primary" id="admin-stat-jobs">16</span>
+          <span class="metric-sub">Published requisitions</span>
+        </div>
+        <div class="metric-card glass">
+          <span class="metric-label">Contracts Executed</span>
+          <span class="metric-val text-success" id="admin-stat-contracts">10</span>
+          <span class="metric-sub">Active & completed</span>
+        </div>
+        <div class="metric-card glass">
+          <span class="metric-label">Open Disputes</span>
+          <span class="metric-val text-danger" id="admin-stat-disputes">0</span>
+          <span class="metric-sub">Requiring arbitration</span>
+        </div>
+      </div>
+
+      <!-- Disputes Queue Card -->
+      <div class="card glass mb-4">
+        <div class="card-header">
+          <h3>⚖️ Dispute Arbitration Console</h3>
+          <span class="badge badge-warning" id="disputes-queue-badge">Arbitration Desk</span>
+        </div>
+        <div class="table-container">
+          <table class="data-table" id="disputes-table">
+            <thead>
+              <tr>
+                <th>Ticket ID</th>
+                <th>Contract</th>
+                <th>Raised By</th>
+                <th>Reason & Grievance</th>
+                <th>Status</th>
+                <th>Resolution</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="disputes-tbody">
+              <tr><td colspan="7" class="text-center py-4">No disputes currently active.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- User Directory Card -->
+      <div class="card glass">
+        <div class="card-header">
+          <h3>Platform User Directory</h3>
+        </div>
+        <div class="table-container">
+          <table class="data-table" id="admin-users-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Standing</th>
+                <th>Company / Title</th>
+                <th>Financial Volume</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-tbody">
+              <tr><td colspan="7" class="text-center py-4">Loading users...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 4. SQL ANALYTICS & REPORTS TAB -->
+    <!-- =================================================================== -->
+    <section id="analytics-tab" class="tab-pane">
+      <div class="section-header">
+        <div>
+          <h2>Relational SQL Analytics & Complex Reporting</h2>
+          <p class="section-desc">Demonstrating advanced relational queries: Multi-table JOINs, GROUP BY, aggregations, and subqueries.</p>
+        </div>
+        <button class="btn btn-sm btn-outline" id="btn-refresh-analytics">🔄 Refresh Reports</button>
+      </div>
+
+      <!-- Report 1: Top Freelancers -->
+      <div class="card glass mb-4">
+        <div class="card-header">
+          <div>
+            <h3>🏆 Leaderboard: Top Freelancers by Rating & Volume</h3>
+            <p class="card-sub">Calculated via <code>JOIN freelancers f JOIN users u LEFT JOIN reviews r GROUP BY f.freelancer_id ORDER BY average_rating DESC, total_earnings DESC</code></p>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="data-table" id="report-freelancers-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Freelancer</th>
+                <th>Title</th>
+                <th>Avg Rating</th>
+                <th>Reviews Count</th>
+                <th>Jobs Done</th>
+                <th>Total Earned</th>
+                <th>Primary Skills</th>
+              </tr>
+            </thead>
+            <tbody id="report-freelancers-tbody">
+              <tr><td colspan="8" class="text-center py-4">Running aggregation query...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Report 2: Enterprise Client Summary -->
+      <div class="card glass">
+        <div class="card-header">
+          <div>
+            <h3>🏢 Enterprise Client Financial Rollup</h3>
+            <p class="card-sub">Calculated via <code>JOIN clients c JOIN users u LEFT JOIN contracts ct GROUP BY c.client_id ORDER BY total_spent DESC</code></p>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="data-table" id="report-clients-table">
+            <thead>
+              <tr>
+                <th>Company Name</th>
+                <th>Contact Representative</th>
+                <th>Location</th>
+                <th>Jobs Posted</th>
+                <th>Contracts Awarded</th>
+                <th>Active Projects</th>
+                <th>Total Spent</th>
+              </tr>
+            </thead>
+            <tbody id="report-clients-tbody">
+              <tr><td colspan="7" class="text-center py-4">Running aggregation query...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =================================================================== -->
+  <!-- MODALS -->
+  <!-- =================================================================== -->
+
+  <!-- Modal 1: Post New Job -->
+  <div class="modal" id="modal-post-job">
+    <div class="modal-dialog glass">
+      <div class="modal-header">
+        <h3>Post a Project Requisition</h3>
+        <button class="btn-close" data-close-modal>&times;</button>
+      </div>
+      <form id="form-post-job">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="job-post-title">Job Title *</label>
+            <input type="text" id="job-post-title" class="form-input" required placeholder="e.g., Scalable Redis Caching Layer in Go">
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="job-post-category">Category *</label>
+              <select id="job-post-category" class="form-select" required>
+                <option value="Frontend Development">Frontend Development</option>
+                <option value="Backend Development">Backend Development</option>
+                <option value="DevOps & Cloud">DevOps & Cloud</option>
+                <option value="Data Engineering">Data Engineering</option>
+                <option value="Mobile Development">Mobile Development</option>
+                <option value="UI/UX Design">UI/UX Design</option>
+                <option value="Security & Audit">Security & Audit</option>
+                <option value="Database Management">Database Management</option>
+                <option value="Full-Stack Web Dev">Full-Stack Web Dev</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label for="job-post-type">Payment Model *</label>
+              <select id="job-post-type" class="form-select" required>
+                <option value="FIXED_PRICE">Fixed Price (Milestone Based)</option>
+                <option value="HOURLY">Hourly Billing</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="job-post-budget">Budget ($) *</label>
+              <input type="number" id="job-post-budget" class="form-input" required min="50" step="50" placeholder="e.g., 2500">
+            </div>
+            <div class="form-group flex-1">
+              <label for="job-post-duration">Duration (Days) *</label>
+              <input type="number" id="job-post-duration" class="form-input" required min="1" placeholder="e.g., 30">
+            </div>
+            <div class="form-group flex-1">
+              <label for="job-post-deadline">Deadline *</label>
+              <input type="date" id="job-post-deadline" class="form-input" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Required Skills (Select applicable)</label>
+            <div class="skills-multiselect" id="job-post-skills-container">
+              <!-- Dynamically populated skills checkboxes -->
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="job-post-description">Scope of Work & Deliverables *</label>
+            <textarea id="job-post-description" class="form-textarea" rows="4" required placeholder="Describe technical requirements, deliverables, acceptance criteria..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-job">Publish Requisition</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Submit Proposal -->
+  <div class="modal" id="modal-submit-proposal">
+    <div class="modal-dialog glass">
+      <div class="modal-header">
+        <h3>Submit Proposal / Bid</h3>
+        <button class="btn-close" data-close-modal>&times;</button>
+      </div>
+      <form id="form-submit-proposal">
+        <input type="hidden" id="proposal-job-id">
+        <div class="modal-body">
+          <div class="callout callout-info mb-3">
+            <h4 id="proposal-modal-job-title">Job Title</h4>
+            <p id="proposal-modal-job-client">Client: TechCorp | Budget: $3,500</p>
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="proposal-bid-amount">Your Bid Amount ($) *</label>
+              <input type="number" id="proposal-bid-amount" class="form-input" required min="10" step="10" placeholder="e.g., 3400">
+            </div>
+            <div class="form-group flex-1">
+              <label for="proposal-delivery-days">Estimated Delivery (Days) *</label>
+              <input type="number" id="proposal-delivery-days" class="form-input" required min="1" placeholder="e.g., 25">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="proposal-cover-letter">Cover Letter & Approach *</label>
+            <textarea id="proposal-cover-letter" class="form-textarea" rows="4" required placeholder="Detail your experience, technical plan, and how you will meet the requirements..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn btn-success" id="btn-submit-proposal-action">Send Bid</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: View Received Proposals (Client view) -->
+  <div class="modal modal-lg" id="modal-view-proposals">
+    <div class="modal-dialog glass">
+      <div class="modal-header">
+        <div>
+          <h3>Proposals Received</h3>
+          <p class="modal-sub" id="proposals-modal-subtitle">Review applicant bids and award a binding contract.</p>
+        </div>
+        <button class="btn-close" data-close-modal>&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="proposals-list-container" class="proposals-list">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close-modal>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Submit Milestone Deliverable (Freelancer view) -->
+  <div class="modal" id="modal-submit-milestone">
+    <div class="modal-dialog glass">
+      <div class="modal-header">
+        <h3>Submit Deliverable for Review</h3>
+        <button class="btn-close" data-close-modal>&times;</button>
+      </div>
+      <form id="form-submit-milestone">
+        <input type="hidden" id="milestone-contract-id">
+        <input type="hidden" id="milestone-seq-no">
+        <div class="modal-body">
+          <div class="callout callout-info mb-3">
+            <h4 id="milestone-modal-title">Milestone 1: Deliverable Name</h4>
+            <p id="milestone-modal-amount">Allocation: $1,200.00 | Due: 2026-03-30</p>
+          </div>
+          <div class="form-group">
+            <label for="milestone-notes">Deliverable Notes / Verification Links *</label>
+            <textarea id="milestone-notes" class="form-textarea" rows="4" required placeholder="Provide repository pull request URLs, live demo links, test documentation..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit to Client</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Leave Post-Contract Review -->
+  <div class="modal" id="modal-leave-review">
+    <div class="modal-dialog glass">
+      <div class="modal-header">
+        <h3>Submit Verified Contract Review</h3>
+        <button class="btn-close" data-close-modal>&times;</button>
+      </div>
+      <form id="form-leave-review">
+        <input type="hidden" id="review-contract-id">
+        <input type="hidden" id="review-reviewer-id">
+        <input type="hidden" id="review-reviewee-id">
+        <div class="modal-body">
+          <div class="callout callout-info mb-3">
+            <h4 id="review-modal-target-name">Reviewing: Freelancer Name</h4>
+            <p id="review-modal-contract-title">Contract: Web Development Project</p>
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="review-overall-rating">Overall Rating (1-5) *</label>
+              <select id="review-overall-rating" class="form-select" required>
+                <option value="5">⭐⭐⭐⭐⭐ (5 - Exceptional)</option>
+                <option value="4">⭐⭐⭐⭐ (4 - Very Good)</option>
+                <option value="3">⭐⭐⭐ (3 - Average)</option>
+                <option value="2">⭐⭐ (2 - Below Expectations)</option>
+                <option value="1">⭐ (1 - Unsatisfactory)</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label for="review-communication">Communication *</label>
+              <select id="review-communication" class="form-select" required>
+                <option value="5">5 - Prompt & Clear</option>
+                <option value="4">4 - Good</option>
+                <option value="3">3 - Acceptable</option>
+                <option value="2">2 - Slow</option>
+                <option value="1">1 - Poor</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="review-quality">Quality of Work *</label>
+              <select id="review-quality" class="form-select" required>
+                <option value="5">5 - Outstanding</option>
+                <option value="4">4 - High Quality</option>
+                <option value="3">3 - Satisfactory</option>
+                <option value="2">2 - Needs Improvement</option>
+                <option value="1">1 - Poor</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label for="review-adherence">Schedule/Deadline *</label>
+              <select id="review-adherence" class="form-select" required>
+                <option value="5">5 - On Time / Early</option>
+                <option value="4">4 - Minor Delay</option>
+                <option value="3">3 - Acceptable</option>
+                <option value="2">2 - Noticeable Delay</option>
+                <option value="1">1 - Failed Deadline</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="review-feedback">Detailed Testimonial *</label>
+            <textarea id="review-feedback" class="form-textarea" rows="3" required placeholder="Write constructive qualitative feedback on your engagement..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn btn-primary">Publish Review</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
