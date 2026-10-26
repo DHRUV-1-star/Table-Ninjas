@@ -74,6 +74,45 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+// Authentication & Persona Login Endpoint
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, user_id } = req.body;
+    let userQuery = `
+      SELECT u.user_id, u.email, u.first_name, u.last_name, u.phone, u.user_role, u.account_status,
+             c.company_name, c.total_spent, c.jobs_posted_count,
+             f.professional_title, f.hourly_rate, f.average_rating, f.jobs_completed_count, f.total_earnings
+      FROM users u
+      LEFT JOIN clients c ON u.user_id = c.client_id
+      LEFT JOIN freelancers f ON u.user_id = f.freelancer_id
+    `;
+    let userParam = [];
+    if (user_id) {
+      userQuery += ' WHERE u.user_id = ? LIMIT 1';
+      userParam = [parseInt(user_id, 10)];
+    } else if (email) {
+      userQuery += ' WHERE LOWER(u.email) = LOWER(?) LIMIT 1';
+      userParam = [email.trim()];
+    } else {
+      return res.status(400).json({ error: 'Please provide email or user_id' });
+    }
+
+    const [rows] = await pool.query(userQuery, userParam);
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ error: 'No user account found matching provided credentials' });
+    }
+
+    const user = rows[0];
+    res.json({
+      message: 'Login successful',
+      user
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // -----------------------------------------------------------------------------
 // 4. Jobs Endpoints (Create, Search/Filter, Read Details, Delete)
 // -----------------------------------------------------------------------------

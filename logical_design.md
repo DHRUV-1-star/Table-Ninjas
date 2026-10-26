@@ -5,7 +5,7 @@
 **Department:** Department of Computer Science and Engineering  
 **Academic Year:** 2026–27  
 **Team Name:** Table Ninjas (3 Members)  
-**Project Title:** Freelance Marketplace (Mini-Upwork / Fiverr Database System)  
+**Project Title:** Freelance Marketplace (Table Ninjas Database System)  
 **Document Phase:** Phase C — Logical Design & Relational Normalization  
 **Reference Documents:** [requirements.md](file:///c:/Users/Admin/Desktop/dbms%20project/requirements.md) | [conceptual_design.md](file:///c:/Users/Admin/Desktop/dbms%20project/conceptual_design.md)
 

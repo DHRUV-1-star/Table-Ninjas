@@ -5,7 +5,7 @@
 **Department:** Department of Computer Science and Engineering  
 **Academic Year:** 2026–27  
 **Team Name:** Table Ninjas (3 Members)  
-**Project Title:** Freelance Marketplace (Mini-Upwork / Fiverr Database System)  
+**Project Title:** Freelance Marketplace (Table Ninjas Database System)  
 **Document Phase:** Phase A — Project Requirements & High-Level Task Analysis  
 
 ---

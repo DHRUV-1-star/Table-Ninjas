@@ -65,7 +65,7 @@ style: |
 * **Arbitration Deficits:** Lack of transparent communication logging and milestone tracking creates unresolved financial disputes.
 
 ### Project Objective & Scope
-* Design a centralized **relational database application** (mini-Upwork/Fiverr architecture) connecting **Clients** and **Freelancers**.
+* Design a centralized **relational database application** (Table Ninjas freelance marketplace architecture) connecting **Clients** and **Freelancers**.
 * Manage the complete hiring lifecycle: Job Posting $\rightarrow$ Proposal Bidding $\rightarrow$ Contract Award $\rightarrow$ Milestone Escrow Funding $\rightarrow$ Delivery Sign-off $\rightarrow$ Payout Release $\rightarrow$ Verified Bidirectional Reviews.
 * Enforce strict **ACID compliance**, declarative referential integrity, and automated trigger-based data consistency.
 

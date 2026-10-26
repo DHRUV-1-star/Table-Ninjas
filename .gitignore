@@ -12,3 +12,11 @@ Thumbs.db
 .idea/
 .vscode/
 *.tmp
+
+# Assignment 10 & 11 files (kept local)
+*assignment_10*
+*assignment_11*
+assignment_10*
+assignment_11*
+backend/init_db.js
+*.mwb

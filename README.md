@@ -3,7 +3,7 @@
 **Course:** Database Management Systems (CS203) — Academic Year 2026–27  
 **Department:** Computer Science and Engineering, Sardar Vallabhbhai National Institute of Technology (SVNIT), Surat  
 **Team Name:** Table Ninjas (3 Members)  
-**Project Title:** Freelance Marketplace (Mini-Upwork / Fiverr Database System)  
+**Project Title:** Freelance Marketplace (Table Ninjas Database System)  
 
 ---
 
@@ -32,19 +32,19 @@ dbms project/
 ├── testing.md                  # Phase E: Test case specification (18 automated tests)
 ├── README.md                   # Setup instructions & developer guide
 ├── db/                         # Database scripts directory
-│   ├── schema.sql              # MySQL DDL with all 15 tables, constraints & triggers
-│   ├── seed_data.sql           # Realistic seed dataset (14 users, 16 jobs, 24 proposals, 10 contracts)
+│   ├── schema.sql              # MySQL DDL with all 16 tables, constraints & triggers
+│   ├── seed_data.sql           # Realistic seed dataset (14 users, 17 jobs, 25 proposals, 11 contracts)
 │   ├── indices.sql             # B-tree performance indexes & covering reverse indexes
-│   └── crud_examples.sql       # Complex analytical queries & transaction flows
+│   └── crud_examples.sql       # Analytical queries & transaction flows
 ├── backend/                    # Node.js Express REST API
-│   ├── server.js               # REST API endpoints, static SPA server & reporting queries
+│   ├── server.js               # REST API endpoints & static SPA server
 │   ├── db.js                   # MySQL2 connection pool configuration
 │   ├── package.json            # Node.js dependencies
 │   ├── test_suite.js           # Automated end-to-end integration test runner
 │   └── .env                    # Database environment configuration
 └── frontend/                   # Interactive Single-Page Web Prototype
-    ├── index.html              # Semantic HTML5 layout with Client, Freelancer, & Admin tabs
-    ├── style.css               # Modern dark-mode glassmorphic design system
+    ├── index.html              # Modern HTML5 layout with Table Ninjas branding
+    ├── style.css               # Modern design system & Table Ninjas styling
     └── app.js                  # Frontend controller, state management, & API client
 ```
 
