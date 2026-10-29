@@ -12,7 +12,8 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 15,
   queueLimit: 0,
-  decimalNumbers: true
+  decimalNumbers: true,
+  multipleStatements: true
 });
 
 // Test connection on launch

@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
 const pool = require('./db');
+const pl = require('./procedure_layer');
 
 dotenv.config();
 
@@ -112,6 +113,33 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// User Registration via Stored Procedure sp_register_user
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password, first_name, last_name, phone, user_role, company_name, professional_title, hourly_rate } = req.body;
+    if (!email || !first_name || !last_name || !user_role) {
+      return res.status(400).json({ error: 'Missing required registration parameters' });
+    }
+    const passwordHash = password || 'hashed_default_pwd';
+    const userId = await pl.registerUser(email, passwordHash, first_name, last_name, phone || null, user_role);
+    if (!userId) {
+      return res.status(500).json({ error: 'Registration failed: procedure did not return user ID.' });
+    }
+
+    if (user_role === 'CLIENT' || user_role === 'DUAL') {
+      await pool.query(`INSERT INTO clients (client_id, company_name) VALUES (?, ?) ON DUPLICATE KEY UPDATE company_name = VALUES(company_name)`, [userId, company_name || null]);
+    }
+    if (user_role === 'FREELANCER' || user_role === 'DUAL') {
+      await pool.query(`INSERT INTO freelancers (freelancer_id, professional_title, hourly_rate) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE professional_title = VALUES(professional_title)`, [userId, professional_title || 'Freelancer', hourly_rate || 25.00]);
+    }
+
+    res.status(201).json({ message: 'User registered successfully via PL/SQL Stored Procedure sp_register_user', user_id: userId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 
 // -----------------------------------------------------------------------------
 // 4. Jobs Endpoints (Create, Search/Filter, Read Details, Delete)
@@ -218,7 +246,6 @@ app.get('/api/jobs/:id', async (req, res) => {
 });
 
 app.post('/api/jobs', async (req, res) => {
-  const conn = await pool.getConnection();
   try {
     const { client_id, title, description, category, payment_type, budget, experience_level, duration_days, deadline, skill_ids } = req.body;
 
@@ -226,52 +253,37 @@ app.post('/api/jobs', async (req, res) => {
       return res.status(400).json({ error: 'Missing required job parameters' });
     }
 
-    if (parseFloat(budget) <= 0) {
-      return res.status(400).json({ error: 'Budget must be greater than zero' });
-    }
-
-    await conn.beginTransaction();
-
-    const [result] = await conn.query(`
-      INSERT INTO jobs (client_id, title, description, category, payment_type, budget, experience_level, duration_days, deadline, job_status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN')
-    `, [client_id, title, description, category, payment_type || 'FIXED_PRICE', budget, experience_level || 'INTERMEDIATE', duration_days, deadline]);
-
-    const jobId = result.insertId;
+    const jobId = await pl.insertJob(
+      parseInt(client_id, 10),
+      title,
+      description,
+      category,
+      payment_type || 'FIXED_PRICE',
+      parseFloat(budget),
+      experience_level || 'INTERMEDIATE',
+      parseInt(duration_days, 10),
+      deadline
+    );
 
     if (Array.isArray(skill_ids) && skill_ids.length > 0) {
       const skillValues = skill_ids.map(sid => [jobId, parseInt(sid, 10), true]);
-      await conn.query(`INSERT INTO job_skills (job_id, skill_id, is_mandatory) VALUES ?`, [skillValues]);
+      await pool.query(`INSERT INTO job_skills (job_id, skill_id, is_mandatory) VALUES ?`, [skillValues]);
     }
 
-    await conn.query(`UPDATE clients SET jobs_posted_count = jobs_posted_count + 1 WHERE client_id = ?`, [client_id]);
-
-    await conn.commit();
-    res.status(201).json({ message: 'Job posted successfully', job_id: jobId });
+    res.status(201).json({ message: 'Job posted successfully via Stored Procedure sp_insert_job', job_id: jobId });
   } catch (err) {
-    await conn.rollback();
     res.status(500).json({ error: err.message });
-  } finally {
-    conn.release();
   }
 });
 
 app.delete('/api/jobs/:id', async (req, res) => {
   try {
     const jobId = parseInt(req.params.id, 10);
-    // Check if job is in active contract
-    const [[contract]] = await pool.query('SELECT contract_id FROM contracts WHERE job_id = ?', [jobId]);
-    if (contract) {
-      return res.status(400).json({ error: 'Cannot delete job: an active or completed contract is linked to this job.' });
-    }
-
-    const [result] = await pool.query('DELETE FROM jobs WHERE job_id = ?', [jobId]);
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Job not found' });
-    }
-    res.json({ message: 'Job deleted successfully' });
+    await pl.deleteJob(jobId);
+    res.json({ message: 'Job deleted successfully via Stored Procedure sp_delete_job' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    const status = err.sqlState === '45000' ? 400 : 500;
+    res.status(status).json({ error: err.message });
   }
 });
 
@@ -319,31 +331,21 @@ app.post('/api/proposals', async (req, res) => {
       return res.status(400).json({ error: 'All proposal fields are required' });
     }
 
-    if (parseFloat(bid_amount) <= 0) {
-      return res.status(400).json({ error: 'Bid amount must be positive' });
-    }
+    const proposalId = await pl.submitProposal(
+      parseInt(job_id, 10),
+      parseInt(freelancer_id, 10),
+      parseFloat(bid_amount),
+      parseInt(estimated_delivery_days, 10),
+      cover_letter
+    );
 
-    // Check job status
-    const [[job]] = await pool.query('SELECT job_status, client_id, deadline FROM jobs WHERE job_id = ?', [job_id]);
-    if (!job) return res.status(404).json({ error: 'Job not found' });
-    if (job.job_status !== 'OPEN') {
-      return res.status(400).json({ error: `Cannot submit proposal: Job is ${job.job_status}, not OPEN.` });
-    }
-    if (job.client_id === parseInt(freelancer_id, 10)) {
-      return res.status(400).json({ error: 'Business Rule Violation: Clients cannot bid on their own jobs.' });
-    }
-
-    const [result] = await pool.query(`
-      INSERT INTO proposals (job_id, freelancer_id, bid_amount, estimated_delivery_days, cover_letter, proposal_status)
-      VALUES (?, ?, ?, ?, ?, 'SUBMITTED')
-    `, [job_id, freelancer_id, bid_amount, estimated_delivery_days, cover_letter]);
-
-    res.status(201).json({ message: 'Proposal submitted successfully', proposal_id: result.insertId });
+    res.status(201).json({ message: 'Proposal submitted successfully via Stored Procedure sp_submit_proposal', proposal_id: proposalId });
   } catch (err) {
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ error: 'You have already submitted a proposal for this job.' });
     }
-    res.status(500).json({ error: err.message });
+    const status = err.sqlState === '45000' ? 400 : 500;
+    res.status(status).json({ error: err.message });
   }
 });
 
@@ -435,77 +437,21 @@ app.get('/api/contracts/:id', async (req, res) => {
   }
 });
 
-// Award Contract from Proposal
+// Award Contract from Proposal via Stored Procedure sp_award_contract
 app.post('/api/contracts/award', async (req, res) => {
-  const conn = await pool.getConnection();
   try {
     const { proposal_id } = req.body;
     if (!proposal_id) return res.status(400).json({ error: 'proposal_id is required' });
 
-    await conn.beginTransaction();
-
-    const [[proposal]] = await conn.query(`
-      SELECT p.*, j.client_id, j.title, j.job_status
-      FROM proposals p
-      JOIN jobs j ON p.job_id = j.job_id
-      WHERE p.proposal_id = ?
-    `, [proposal_id]);
-
-    if (!proposal) {
-      await conn.rollback();
-      return res.status(404).json({ error: 'Proposal not found' });
-    }
-
-    if (proposal.job_status !== 'OPEN') {
-      await conn.rollback();
-      return res.status(400).json({ error: `Job status is ${proposal.job_status}. Only OPEN jobs can be awarded.` });
-    }
-
-    // 1. Mark proposal as ACCEPTED
-    await conn.query(`UPDATE proposals SET proposal_status = 'ACCEPTED' WHERE proposal_id = ?`, [proposal_id]);
-
-    // 2. Reject other proposals for the same job
-    await conn.query(`UPDATE proposals SET proposal_status = 'REJECTED' WHERE job_id = ? AND proposal_id <> ?`, [proposal.job_id, proposal_id]);
-
-    // 3. Update job status to IN_PROGRESS
-    await conn.query(`UPDATE jobs SET job_status = 'IN_PROGRESS' WHERE job_id = ?`, [proposal.job_id]);
-
-    // 4. Create contract
-    const [contractResult] = await conn.query(`
-      INSERT INTO contracts (job_id, proposal_id, client_id, freelancer_id, agreed_amount, start_date, contract_status)
-      VALUES (?, ?, ?, ?, ?, CURRENT_DATE, 'ACTIVE')
-    `, [proposal.job_id, proposal_id, proposal.client_id, proposal.freelancer_id, proposal.bid_amount]);
-
-    const contractId = contractResult.insertId;
-
-    // 5. Partition into 2 equal milestones
-    const halfAmount = (proposal.bid_amount / 2).toFixed(2);
-    const restAmount = (proposal.bid_amount - halfAmount).toFixed(2);
-
-    await conn.query(`
-      INSERT INTO milestones (contract_id, milestone_seq_no, title, deliverable_description, amount, due_date, milestone_status)
-      VALUES 
-      (?, 1, 'Phase 1: Initial Architecture & Prototype', 'Core design, architecture, and preliminary prototype deliverable.', ?, DATE_ADD(CURRENT_DATE, INTERVAL 14 DAY), 'FUNDED'),
-      (?, 2, 'Phase 2: Final Implementation & QA Testing', 'Final implementation, test coverage, and deployment verification.', ?, DATE_ADD(CURRENT_DATE, INTERVAL 28 DAY), 'PENDING')
-    `, [contractId, halfAmount, contractId, restAmount]);
-
-    // 6. Simulate Escrow Lock for Milestone 1 (from Client to Platform Escrow user #14)
-    await conn.query(`
-      INSERT INTO payments (contract_id, milestone_seq_no, sender_id, receiver_id, amount, payment_type, payment_status)
-      VALUES (?, 1, ?, 14, ?, 'ESCROW_LOCK', 'COMPLETED')
-    `, [contractId, proposal.client_id, halfAmount]);
-
-    await conn.commit();
-    res.status(201).json({ message: 'Contract awarded successfully', contract_id: contractId });
+    const contractId = await pl.awardContract(parseInt(proposal_id, 10));
+    res.status(201).json({ message: 'Contract awarded and escrow funded successfully via Stored Procedure sp_award_contract', contract_id: contractId });
   } catch (err) {
-    await conn.rollback();
-    res.status(500).json({ error: err.message });
-  } finally {
-    conn.release();
+    const status = err.sqlState === '45000' ? 400 : 500;
+    res.status(status).json({ error: err.message });
   }
 });
 
-// Submit Deliverables for Milestone
+// Submit Deliverables for Milestone via Stored Procedure sp_submit_milestone
 app.patch('/api/milestones/:contract_id/:seq_no/submit', async (req, res) => {
   try {
     const { contract_id, seq_no } = req.params;
@@ -515,109 +461,35 @@ app.patch('/api/milestones/:contract_id/:seq_no/submit', async (req, res) => {
       return res.status(400).json({ error: 'submission_notes are required' });
     }
 
-    const [result] = await pool.query(`
-      UPDATE milestones 
-      SET submission_notes = ?, submission_date = NOW(), milestone_status = 'IN_REVIEW'
-      WHERE contract_id = ? AND milestone_seq_no = ? AND milestone_status IN ('PENDING', 'FUNDED')
-    `, [submission_notes, contract_id, seq_no]);
-
-    if (result.affectedRows === 0) {
-      return res.status(400).json({ error: 'Milestone cannot be submitted (may already be in review or approved)' });
-    }
-
-    res.json({ message: 'Milestone deliverables submitted successfully' });
+    await pl.submitMilestone(parseInt(contract_id, 10), parseInt(seq_no, 10), submission_notes);
+    res.json({ message: 'Milestone deliverables submitted successfully via Stored Procedure sp_submit_milestone' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    const status = err.sqlState === '45000' ? 400 : 500;
+    res.status(status).json({ error: err.message });
   }
 });
 
-// Client Approves Milestone and Releases Payment
+// Client Approves Milestone and Releases Payment via Stored Procedure sp_approve_milestone_and_pay
 app.post('/api/milestones/:contract_id/:seq_no/approve-pay', async (req, res) => {
-  const conn = await pool.getConnection();
   try {
     const { contract_id, seq_no } = req.params;
-
-    await conn.beginTransaction();
-
-    const [[milestone]] = await conn.query(`
-      SELECT m.*, c.client_id, c.freelancer_id
-      FROM milestones m
-      JOIN contracts c ON m.contract_id = c.contract_id
-      WHERE m.contract_id = ? AND m.milestone_seq_no = ?
-    `, [contract_id, seq_no]);
-
-    if (!milestone) {
-      await conn.rollback();
-      return res.status(404).json({ error: 'Milestone not found' });
-    }
-
-    if (milestone.milestone_status === 'APPROVED') {
-      await conn.rollback();
-      return res.status(400).json({ error: 'Milestone is already approved and paid.' });
-    }
-
-    // 1. Update milestone to APPROVED
-    await conn.query(`
-      UPDATE milestones SET milestone_status = 'APPROVED' WHERE contract_id = ? AND milestone_seq_no = ?
-    `, [contract_id, seq_no]);
-
-    // 2. Insert MILESTONE_RELEASE payment (Platform Escrow #14 -> Freelancer)
-    // Automated trigger trg_after_payment_complete updates total_earnings and total_spent
-    await conn.query(`
-      INSERT INTO payments (contract_id, milestone_seq_no, sender_id, receiver_id, amount, payment_type, payment_status)
-      VALUES (?, ?, 14, ?, ?, 'MILESTONE_RELEASE', 'COMPLETED')
-    `, [contract_id, seq_no, milestone.freelancer_id, milestone.amount]);
-
-    // Check if next milestone exists and fund it
-    const nextSeq = parseInt(seq_no, 10) + 1;
-    const [[nextMilestone]] = await conn.query(`
-      SELECT * FROM milestones WHERE contract_id = ? AND milestone_seq_no = ?
-    `, [contract_id, nextSeq]);
-
-    if (nextMilestone) {
-      await conn.query(`UPDATE milestones SET milestone_status = 'FUNDED' WHERE contract_id = ? AND milestone_seq_no = ?`, [contract_id, nextSeq]);
-      await conn.query(`
-        INSERT INTO payments (contract_id, milestone_seq_no, sender_id, receiver_id, amount, payment_type, payment_status)
-        VALUES (?, ?, ?, 14, ?, 'ESCROW_LOCK', 'COMPLETED')
-      `, [contract_id, nextSeq, milestone.client_id, nextMilestone.amount]);
-    }
-
-    await conn.commit();
-    res.json({ message: 'Milestone approved and payment released successfully' });
+    await pl.approveMilestoneAndPay(parseInt(contract_id, 10), parseInt(seq_no, 10));
+    res.json({ message: 'Milestone approved and payment released successfully via Stored Procedure sp_approve_milestone_and_pay' });
   } catch (err) {
-    await conn.rollback();
-    res.status(500).json({ error: err.message });
-  } finally {
-    conn.release();
+    const status = err.sqlState === '45000' ? 400 : 500;
+    res.status(status).json({ error: err.message });
   }
 });
 
-// Mark Contract Completed
+// Mark Contract Completed via Stored Procedure sp_complete_contract
 app.post('/api/contracts/:id/complete', async (req, res) => {
   try {
     const contractId = parseInt(req.params.id, 10);
-
-    // Verify all milestones are approved
-    const [milestones] = await pool.query('SELECT milestone_status FROM milestones WHERE contract_id = ?', [contractId]);
-    const unapproved = milestones.filter(m => m.milestone_status !== 'APPROVED');
-    if (unapproved.length > 0) {
-      return res.status(400).json({ error: `Cannot complete contract: ${unapproved.length} milestone(s) are not yet approved.` });
-    }
-
-    await pool.query(`
-      UPDATE contracts 
-      SET contract_status = 'COMPLETED', end_date = CURRENT_DATE 
-      WHERE contract_id = ?
-    `, [contractId]);
-
-    // Also mark job as COMPLETED
-    await pool.query(`
-      UPDATE jobs SET job_status = 'COMPLETED' WHERE job_id = (SELECT job_id FROM contracts WHERE contract_id = ?)
-    `, [contractId]);
-
-    res.json({ message: 'Contract and Job marked as COMPLETED successfully' });
+    await pl.completeContract(contractId);
+    res.json({ message: 'Contract and Job marked as COMPLETED successfully via Stored Procedure sp_complete_contract' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    const status = err.sqlState === '45000' ? 400 : 500;
+    res.status(status).json({ error: err.message });
   }
 });
 
@@ -664,28 +536,24 @@ app.post('/api/reviews', async (req, res) => {
       return res.status(400).json({ error: 'Missing required review fields' });
     }
 
-    if (reviewer_id === reviewee_id) {
-      return res.status(400).json({ error: 'Reviewer cannot review themselves' });
-    }
+    const reviewId = await pl.submitReview(
+      parseInt(contract_id, 10),
+      parseInt(reviewer_id, 10),
+      parseInt(reviewee_id, 10),
+      parseInt(overall_rating, 10),
+      parseInt(communication_rating || 5, 10),
+      parseInt(quality_rating || 5, 10),
+      parseInt(adherence_rating || 5, 10),
+      feedback_comment
+    );
 
-    // Verify contract is COMPLETED
-    const [[contract]] = await pool.query('SELECT contract_status FROM contracts WHERE contract_id = ?', [contract_id]);
-    if (!contract) return res.status(404).json({ error: 'Contract not found' });
-    if (contract.contract_status !== 'COMPLETED') {
-      return res.status(400).json({ error: `Cannot submit review: Contract is ${contract.contract_status}. Reviews are only allowed on COMPLETED contracts.` });
-    }
-
-    const [result] = await pool.query(`
-      INSERT INTO reviews (contract_id, reviewer_id, reviewee_id, overall_rating, communication_rating, quality_rating, adherence_rating, feedback_comment)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `, [contract_id, reviewer_id, reviewee_id, overall_rating, communication_rating || 5, quality_rating || 5, adherence_rating || 5, feedback_comment]);
-
-    res.status(201).json({ message: 'Review submitted successfully', review_id: result.insertId });
+    res.status(201).json({ message: 'Review submitted successfully via Stored Procedure sp_submit_review', review_id: reviewId });
   } catch (err) {
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ error: 'You have already submitted a review for this contract.' });
     }
-    res.status(500).json({ error: err.message });
+    const status = err.sqlState === '45000' ? 400 : 500;
+    res.status(status).json({ error: err.message });
   }
 });
 
@@ -720,50 +588,19 @@ app.patch('/api/disputes/:id/resolve', async (req, res) => {
       return res.status(400).json({ error: 'resolution_type is required (REFUND_CLIENT, PAYOUT_FREELANCER, SPLIT_PROPORTIONAL)' });
     }
 
-    const [result] = await pool.query(`
-      UPDATE disputes 
-      SET dispute_status = 'RESOLVED', resolution_type = ?, resolved_by_admin_id = ?, resolved_at = NOW()
-      WHERE dispute_id = ?
-    `, [resolution_type, admin_id || 14, disputeId]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Dispute not found' });
-    }
-
-    res.json({ message: 'Dispute successfully resolved by Administrator' });
+    await pl.resolveDispute(disputeId, resolution_type, admin_id || 14);
+    res.json({ message: 'Dispute successfully resolved by Administrator via Stored Procedure sp_resolve_dispute' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 // -----------------------------------------------------------------------------
-// 9. Analytical Reports (JOIN + GROUP BY + Aggregate Metrics)
+// 9. Analytical Reports via PL/SQL Stored Procedures
 // -----------------------------------------------------------------------------
 app.get('/api/reports/top-freelancers', async (req, res) => {
   try {
-    const [report] = await pool.query(`
-      SELECT 
-        f.freelancer_id,
-        CONCAT(u.first_name, ' ', u.last_name) AS freelancer_name,
-        u.email,
-        f.professional_title,
-        f.hourly_rate,
-        f.average_rating,
-        f.jobs_completed_count,
-        f.total_earnings,
-        COUNT(DISTINCT r.review_id) AS reviews_count,
-        ROUND(AVG(r.quality_rating), 2) AS avg_quality_rating,
-        ROUND(AVG(r.communication_rating), 2) AS avg_comm_rating,
-        GROUP_CONCAT(DISTINCT s.skill_name ORDER BY s.skill_name SEPARATOR ', ') AS top_skills
-      FROM freelancers f
-      JOIN users u ON f.freelancer_id = u.user_id
-      LEFT JOIN reviews r ON f.freelancer_id = r.reviewee_id
-      LEFT JOIN freelancer_skills fs ON f.freelancer_id = fs.freelancer_id
-      LEFT JOIN skills s ON fs.skill_id = s.skill_id
-      GROUP BY f.freelancer_id, u.first_name, u.last_name, u.email, f.professional_title,
-               f.hourly_rate, f.average_rating, f.jobs_completed_count, f.total_earnings
-      ORDER BY f.average_rating DESC, f.total_earnings DESC, f.jobs_completed_count DESC
-    `);
+    const report = await pl.topFreelancers();
     res.json(report);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -772,24 +609,7 @@ app.get('/api/reports/top-freelancers', async (req, res) => {
 
 app.get('/api/reports/client-summary', async (req, res) => {
   try {
-    const [summary] = await pool.query(`
-      SELECT 
-        c.client_id,
-        c.company_name,
-        CONCAT(u.first_name, ' ', u.last_name) AS contact_person,
-        c.city,
-        c.country,
-        c.total_spent,
-        c.jobs_posted_count,
-        COUNT(DISTINCT ct.contract_id) AS total_contracts_awarded,
-        COALESCE(SUM(ct.agreed_amount), 0.00) AS total_contract_commitments,
-        COUNT(DISTINCT CASE WHEN ct.contract_status = 'ACTIVE' THEN ct.contract_id END) AS active_contracts
-      FROM clients c
-      JOIN users u ON c.client_id = u.user_id
-      LEFT JOIN contracts ct ON c.client_id = ct.client_id
-      GROUP BY c.client_id, c.company_name, u.first_name, u.last_name, c.city, c.country, c.total_spent, c.jobs_posted_count
-      ORDER BY c.total_spent DESC
-    `);
+    const summary = await pl.clientSummary();
     res.json(summary);
   } catch (err) {
     res.status(500).json({ error: err.message });

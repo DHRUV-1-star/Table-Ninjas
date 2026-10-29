@@ -72,7 +72,7 @@ async function runTests() {
       budget: 2500.00,
       experience_level: 'EXPERT',
       duration_days: 15,
-      deadline: '2026-06-30',
+      deadline: '2027-06-30',
       skill_ids: [2, 16] // Node.js, Redis
     };
     const postJobRes = await request('POST', '/jobs', newJobPayload);
