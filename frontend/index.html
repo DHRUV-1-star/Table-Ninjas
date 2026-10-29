@@ -13,6 +13,12 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('table_ninjas_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
 </head>
 
 <body class="ninja-app">
@@ -28,20 +34,27 @@
       <div class="header-inner">
         <a href="#" class="table-ninjas-brand-link" id="login-brand-logo">
           <span class="table-ninjas-logo">
-          <svg class="table-ninjas-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="36" height="36" rx="10" fill="#14a800"/>
-            <path d="M6 13C6 9 10 7 18 7C26 7 30 9 30 13V23C30 27 26 29 18 29C10 29 6 27 6 23V13Z" fill="#001e00"/>
-            <rect x="9" y="10" width="18" height="3.5" rx="1.5" fill="#ffffff" opacity="0.9"/>
-            <circle cx="18" cy="11.75" r="1.2" fill="#14a800"/>
-            <path d="M10 16.5C10 15.5 12 15 18 15C24 15 26 15.5 26 16.5C26 18.5 24 19.5 18 19.5C12 19.5 10 18.5 10 16.5Z" fill="#0a2e0a"/>
-            <polygon points="12.5,16.5 16,17.2 13,18" fill="#14a800"/>
-            <polygon points="23.5,16.5 20,17.2 23,18" fill="#14a800"/>
-            <path d="M12 23.5H24M12 26H24" stroke="#14a800" stroke-width="1.3" stroke-linecap="round"/>
-          </svg>
-          <span class="table-ninjas-text">Table<span class="text-green">Ninjas</span></span>
-        </span>
+            <svg class="table-ninjas-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="36" height="36" rx="10" fill="#14a800" />
+              <path d="M6 13C6 9 10 7 18 7C26 7 30 9 30 13V23C30 27 26 29 18 29C10 29 6 27 6 23V13Z" fill="#001e00" />
+              <rect x="9" y="10" width="18" height="3.5" rx="1.5" fill="#ffffff" opacity="0.9" />
+              <circle cx="18" cy="11.75" r="1.2" fill="#14a800" />
+              <path
+                d="M10 16.5C10 15.5 12 15 18 15C24 15 26 15.5 26 16.5C26 18.5 24 19.5 18 19.5C12 19.5 10 18.5 10 16.5Z"
+                fill="#0a2e0a" />
+              <polygon points="12.5,16.5 16,17.2 13,18" fill="#14a800" />
+              <polygon points="23.5,16.5 20,17.2 23,18" fill="#14a800" />
+              <path d="M12 23.5H24M12 26H24" stroke="#14a800" stroke-width="1.3" stroke-linecap="round" />
+            </svg>
+            <span class="table-ninjas-text">Table<span class="text-green">Ninjas</span></span>
+          </span>
         </a>
         <div class="header-right-action">
+          <button type="button" class="theme-toggle-btn" id="login-theme-toggle" title="Switch Theme (Dark / Light)"
+            aria-label="Toggle Theme">
+            <span class="theme-toggle-icon">☀️</span>
+            <span class="theme-toggle-text">Light</span>
+          </button>
           <span>Looking for talent or work?</span>
           <a href="#" class="link-ninja-green" id="btn-quick-signup">Sign Up</a>
         </div>
@@ -64,7 +77,8 @@
               <span class="chip-icon">🏢</span>
               <span class="chip-text"><strong>Alice Johnson</strong> (Client)</span>
             </button>
-            <button type="button" class="demo-chip" data-email="faisal@codecraft.dev" title="Freelancer: Full-Stack Engineer">
+            <button type="button" class="demo-chip" data-email="faisal@codecraft.dev"
+              title="Freelancer: Full-Stack Engineer">
               <span class="chip-icon">💻</span>
               <span class="chip-text"><strong>Faisal Khan</strong> (Freelancer)</span>
             </button>
@@ -87,26 +101,32 @@
           <span>or sign in with email</span>
         </div>
 
-        <!-- Login Form -->
+        <!-- Login Form with Dedicated Username and Email Textboxes -->
         <form id="form-login" class="login-form">
           <div class="form-group mb-3">
-            <label for="login-email" class="form-label-ninja">Username or Email</label>
+            <label for="login-username" class="form-label-ninja">Username</label>
             <div class="input-with-icon">
-              <input type="email" id="login-email" class="form-input-ninja" placeholder="name@company.com" required
-                value="alice@techcorp.io">
+              <input type="text" id="login-username" class="form-input-ninja" placeholder="Enter your username (e.g. pranshvihmt11)" autocomplete="username">
               <span class="input-icon">👤</span>
             </div>
           </div>
 
           <div class="form-group mb-3">
+            <label for="login-email" class="form-label-ninja">Email Address</label>
+            <div class="input-with-icon">
+              <input type="email" id="login-email" class="form-input-ninja" placeholder="name@company.com" autocomplete="email">
+              <span class="input-icon">✉️</span>
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
             <div class="label-row">
-              <label for="login-password" class="form-label-ninja">Password</label>
-              <a href="#" class="forgot-link">Forgot password?</a>
+              <label for="login-password" class="form-label-ninja">Password *</label>
+              <a href="#" class="forgot-link" id="link-forgot-password">Forgot password?</a>
             </div>
             <div class="input-with-icon">
-              <input type="password" id="login-password" class="form-input-ninja" placeholder="Enter your password"
-                value="••••••••••••">
-              <span class="input-icon">🔒</span>
+              <input type="password" id="login-password" class="form-input-ninja" placeholder="Enter your password" required autocomplete="current-password">
+              <button type="button" class="btn-toggle-eye" data-target="login-password" title="Show/Hide password">👁️</button>
             </div>
           </div>
 
@@ -118,7 +138,7 @@
           </div>
 
           <button type="submit" class="btn-ninja-primary w-100" id="btn-login-submit">
-            Continue with Email
+            Log In to Table Ninjas
           </button>
         </form>
 
@@ -126,25 +146,25 @@
           <span>or</span>
         </div>
 
-        <!-- Social login options styled identically to Table Ninjas -->
+        <!-- Social login options with interactive auth dialogs -->
         <div class="social-login-group">
           <button type="button" class="btn-ninja-social" id="btn-social-google">
             <svg class="social-icon" viewBox="0 0 24 24">
               <path fill="#4285F4"
-                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
               <path fill="#34A853"
-                d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z" />
               <path fill="#FBBC05"
-                d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.16 0 9.94 0 12s.45 3.84 1.25 5.42l4.03-3.15z"/>
+                d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.16 0 9.94 0 12s.45 3.84 1.25 5.42l4.03-3.15z" />
               <path fill="#EA4335"
-                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
             </svg>
             <span>Continue with Google</span>
           </button>
           <button type="button" class="btn-ninja-social" id="btn-social-apple">
             <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
               <path
-                d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.58.67-.99 1.74-.86 2.76.99.08 2.01-.52 2.57-1.26z"/>
+                d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.58.67-.99 1.74-.86 2.76.99.08 2.01-.52 2.57-1.26z" />
             </svg>
             <span>Continue with Apple</span>
           </button>
@@ -152,6 +172,187 @@
 
         <div class="login-footer">
           <p>Don't have a Table Ninjas account? <a href="#" class="signup-link" id="link-create-account">Sign Up</a></p>
+          <div class="dbms-meta-tag">CS203 DBMS Project &bull; Table Ninjas &bull; SVNIT Surat</div>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- =================================================================== -->
+  <!-- 1.5. TABLE NINJAS SIGN UP PAGE (Full-page registration view)        -->
+  <!-- =================================================================== -->
+  <section id="view-signup" class="page-view">
+    <header class="ninja-minimal-header">
+      <div class="header-inner">
+        <a href="#" class="table-ninjas-brand-link" id="signup-brand-logo">
+          <span class="table-ninjas-logo">
+            <svg class="table-ninjas-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="36" height="36" rx="10" fill="#14a800" />
+              <path d="M6 13C6 9 10 7 18 7C26 7 30 9 30 13V23C30 27 26 29 18 29C10 29 6 27 6 23V13Z" fill="#001e00" />
+              <rect x="9" y="10" width="18" height="3.5" rx="1.5" fill="#ffffff" opacity="0.9" />
+              <circle cx="18" cy="11.75" r="1.2" fill="#14a800" />
+              <path
+                d="M10 16.5C10 15.5 12 15 18 15C24 15 26 15.5 26 16.5C26 18.5 24 19.5 18 19.5C12 19.5 10 18.5 10 16.5Z"
+                fill="#0a2e0a" />
+              <polygon points="12.5,16.5 16,17.2 13,18" fill="#14a800" />
+              <polygon points="23.5,16.5 20,17.2 23,18" fill="#14a800" />
+              <path d="M12 23.5H24M12 26H24" stroke="#14a800" stroke-width="1.3" stroke-linecap="round" />
+            </svg>
+            <span class="table-ninjas-text">Table<span class="text-green">Ninjas</span></span>
+          </span>
+        </a>
+        <div class="header-right-action">
+          <button type="button" class="theme-toggle-btn" id="signup-theme-toggle" title="Switch Theme (Dark / Light)">
+            <span class="theme-toggle-icon">☀️</span>
+            <span class="theme-toggle-text">Light</span>
+          </button>
+          <span>Already have an account?</span>
+          <button type="button" class="btn btn-sm btn-outline" id="btn-signup-header-login">Log In</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="login-wrapper">
+      <div class="login-card signup-card">
+        <h1 class="login-title">Sign up to Table Ninjas</h1>
+        <p class="login-subtitle">Join the world's leading work marketplace to hire top talent or find work</p>
+
+        <!-- Role Choice Selection Cards with Interactive Checkboxes / Radio buttons -->
+        <div class="signup-role-selector" role="radiogroup" aria-label="Select Account Role">
+          <!-- Client Option -->
+          <label class="signup-role-card selected" id="signup-card-client" for="signup-role-client">
+            <div class="role-card-top">
+              <div class="role-icon-title">
+                <span class="role-icon">🏢</span>
+                <strong>I'm a Client</strong>
+              </div>
+              <div class="role-choice-control">
+                <input type="radio" id="signup-role-client" name="signup_role_choice" value="CLIENT" checked class="role-radio-native">
+                <span class="role-checkbox-box">
+                  <svg class="check-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </span>
+              </div>
+            </div>
+            <p class="role-card-desc">I want to hire top talent and post project requisitions</p>
+          </label>
+
+          <!-- Freelancer Option -->
+          <label class="signup-role-card" id="signup-card-freelancer" for="signup-role-freelancer">
+            <div class="role-card-top">
+              <div class="role-icon-title">
+                <span class="role-icon">💻</span>
+                <strong>I'm a Freelancer</strong>
+              </div>
+              <div class="role-choice-control">
+                <input type="radio" id="signup-role-freelancer" name="signup_role_choice" value="FREELANCER" class="role-radio-native">
+                <span class="role-checkbox-box">
+                  <svg class="check-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </span>
+              </div>
+            </div>
+            <p class="role-card-desc">I want to find freelance contracts and earn on projects</p>
+          </label>
+        </div>
+
+        <!-- Social Quick Sign Up -->
+        <div class="social-login-group mt-2">
+          <button type="button" class="btn-ninja-social" id="btn-signup-social-google">
+            <svg class="social-icon" viewBox="0 0 24 24">
+              <path fill="#4285F4"
+                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
+              <path fill="#34A853"
+                d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z" />
+              <path fill="#FBBC05"
+                d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.16 0 9.94 0 12s.45 3.84 1.25 5.42l4.03-3.15z" />
+              <path fill="#EA4335"
+                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
+            </svg>
+            <span>Sign up with Google</span>
+          </button>
+          <button type="button" class="btn-ninja-social" id="btn-signup-social-apple">
+            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.58.67-.99 1.74-.86 2.76.99.08 2.01-.52 2.57-1.26z" />
+            </svg>
+            <span>Sign up with Apple</span>
+          </button>
+        </div>
+
+        <div class="auth-divider">
+          <span>or enter your details to register</span>
+        </div>
+
+        <!-- Clean Sign Up Form where user enters their own details -->
+        <form id="form-signup" class="login-form">
+          <input type="hidden" id="signup-role-value" value="CLIENT">
+          <div class="form-row">
+            <div class="form-group flex-1 mb-3">
+              <label for="signup-first-name" class="form-label-ninja">First Name *</label>
+              <input type="text" id="signup-first-name" class="form-input-ninja" placeholder="Enter first name" required autocomplete="given-name">
+            </div>
+            <div class="form-group flex-1 mb-3">
+              <label for="signup-last-name" class="form-label-ninja">Last Name *</label>
+              <input type="text" id="signup-last-name" class="form-input-ninja" placeholder="Enter last name" required autocomplete="family-name">
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="signup-username" class="form-label-ninja">Username *</label>
+            <div class="input-with-icon">
+              <input type="text" id="signup-username" class="form-input-ninja" placeholder="Choose a unique username" required autocomplete="username">
+              <span class="input-icon">👤</span>
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="signup-email" class="form-label-ninja">Work Email Address *</label>
+            <div class="input-with-icon">
+              <input type="email" id="signup-email" class="form-input-ninja" placeholder="name@company.com" required autocomplete="email">
+              <span class="input-icon">✉️</span>
+            </div>
+          </div>
+
+          <!-- Dynamic Role Metadata Fields -->
+          <div class="form-group mb-3" id="signup-field-company">
+            <label for="signup-company" class="form-label-ninja">Company Name *</label>
+            <input type="text" id="signup-company" class="form-input-ninja" placeholder="e.g. Acme Innovations Inc.">
+          </div>
+          <div class="form-group mb-3" id="signup-field-title" style="display: none;">
+            <label for="signup-title" class="form-label-ninja">Professional Title *</label>
+            <input type="text" id="signup-title" class="form-input-ninja" placeholder="e.g. Senior Full-Stack Engineer">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1 mb-3">
+              <label for="signup-password" class="form-label-ninja">Password (min 6 chars) *</label>
+              <div class="input-with-icon">
+                <input type="password" id="signup-password" class="form-input-ninja" placeholder="Create password" required minlength="6" autocomplete="new-password">
+                <button type="button" class="btn-toggle-eye" data-target="signup-password" title="Show/Hide password">👁️</button>
+              </div>
+            </div>
+            <div class="form-group flex-1 mb-3">
+              <label for="signup-confirm-password" class="form-label-ninja">Confirm Password *</label>
+              <div class="input-with-icon">
+                <input type="password" id="signup-confirm-password" class="form-input-ninja" placeholder="Re-enter password" required minlength="6" autocomplete="new-password">
+                <button type="button" class="btn-toggle-eye" data-target="signup-confirm-password" title="Show/Hide password">👁️</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-options mb-4">
+            <label class="remember-checkbox">
+              <input type="checkbox" id="signup-terms" required checked>
+              <span>I agree to the <a href="#" class="link-ninja-green">Table Ninjas Terms of Service</a> & <a href="#" class="link-ninja-green">Privacy Policy</a></span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-ninja-primary w-100" id="btn-signup-submit">
+            Create My Table Ninjas Account
+          </button>
+        </form>
+
+        <div class="login-footer mt-4">
+          <p>Already have an account? <a href="#" class="signup-link" id="link-signup-to-login">Log In</a></p>
           <div class="dbms-meta-tag">CS203 DBMS Project &bull; Table Ninjas &bull; SVNIT Surat</div>
         </div>
       </div>
@@ -167,20 +368,26 @@
       <div class="header-inner">
         <a href="#" class="table-ninjas-brand-link" id="role-brand-logo">
           <span class="table-ninjas-logo">
-          <svg class="table-ninjas-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="36" height="36" rx="10" fill="#14a800"/>
-            <path d="M6 13C6 9 10 7 18 7C26 7 30 9 30 13V23C30 27 26 29 18 29C10 29 6 27 6 23V13Z" fill="#001e00"/>
-            <rect x="9" y="10" width="18" height="3.5" rx="1.5" fill="#ffffff" opacity="0.9"/>
-            <circle cx="18" cy="11.75" r="1.2" fill="#14a800"/>
-            <path d="M10 16.5C10 15.5 12 15 18 15C24 15 26 15.5 26 16.5C26 18.5 24 19.5 18 19.5C12 19.5 10 18.5 10 16.5Z" fill="#0a2e0a"/>
-            <polygon points="12.5,16.5 16,17.2 13,18" fill="#14a800"/>
-            <polygon points="23.5,16.5 20,17.2 23,18" fill="#14a800"/>
-            <path d="M12 23.5H24M12 26H24" stroke="#14a800" stroke-width="1.3" stroke-linecap="round"/>
-          </svg>
-          <span class="table-ninjas-text">Table<span class="text-green">Ninjas</span></span>
-        </span>
+            <svg class="table-ninjas-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="36" height="36" rx="10" fill="#14a800" />
+              <path d="M6 13C6 9 10 7 18 7C26 7 30 9 30 13V23C30 27 26 29 18 29C10 29 6 27 6 23V13Z" fill="#001e00" />
+              <rect x="9" y="10" width="18" height="3.5" rx="1.5" fill="#ffffff" opacity="0.9" />
+              <circle cx="18" cy="11.75" r="1.2" fill="#14a800" />
+              <path
+                d="M10 16.5C10 15.5 12 15 18 15C24 15 26 15.5 26 16.5C26 18.5 24 19.5 18 19.5C12 19.5 10 18.5 10 16.5Z"
+                fill="#0a2e0a" />
+              <polygon points="12.5,16.5 16,17.2 13,18" fill="#14a800" />
+              <polygon points="23.5,16.5 20,17.2 23,18" fill="#14a800" />
+              <path d="M12 23.5H24M12 26H24" stroke="#14a800" stroke-width="1.3" stroke-linecap="round" />
+            </svg>
+            <span class="table-ninjas-text">Table<span class="text-green">Ninjas</span></span>
+          </span>
         </a>
         <div class="user-greeting-chip">
+          <button type="button" class="theme-toggle-btn-compact" id="role-theme-toggle"
+            title="Switch Theme (Dark / Light)" aria-label="Toggle Theme">
+            <span class="theme-toggle-icon">☀️</span>
+          </button>
           <span class="greeting-avatar" id="role-avatar-chip">AJ</span>
           <span class="greeting-name" id="role-user-name">Alice Johnson</span>
           <button type="button" class="btn-text-logout" id="btn-logout-from-role">Log out</button>
@@ -202,8 +409,10 @@
             <div class="role-card-header">
               <div class="role-icon-box">
                 <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                  <rect width="40" height="40" rx="10" fill="#e4f7e5"/>
-                  <path d="M26 14H23V12C23 10.9 22.1 10 21 10H19C17.9 10 17 10.9 17 12V14H14C12.9 14 12 14.9 12 16V26C12 27.1 12.9 28 14 28H26C27.1 28 28 27.1 28 26V16C28 14.9 27.1 14 26 14ZM18.5 12C18.5 11.72 18.72 11.5 19 11.5H21C21.28 11.5 21.5 11.72 21.5 12V14H18.5V12ZM26 26.5H14C13.72 26.5 13.5 26.28 13.5 26V19.5H26.5V26C26.5 26.28 26.28 26.5 26 26.5Z" fill="#14a800"/>
+                  <rect width="40" height="40" rx="10" fill="#e4f7e5" />
+                  <path
+                    d="M26 14H23V12C23 10.9 22.1 10 21 10H19C17.9 10 17 10.9 17 12V14H14C12.9 14 12 14.9 12 16V26C12 27.1 12.9 28 14 28H26C27.1 28 28 27.1 28 26V16C28 14.9 27.1 14 26 14ZM18.5 12C18.5 11.72 18.72 11.5 19 11.5H21C21.28 11.5 21.5 11.72 21.5 12V14H18.5V12ZM26 26.5H14C13.72 26.5 13.5 26.28 13.5 26V19.5H26.5V26C26.5 26.28 26.28 26.5 26 26.5Z"
+                    fill="#14a800" />
                 </svg>
               </div>
               <div class="custom-radio">
@@ -212,7 +421,8 @@
             </div>
             <h3 class="role-card-title">I'm a client, hiring for a project</h3>
             <p class="role-card-desc">
-              Post project requisitions, explore world-class talent, review proposals, and disburse milestone escrow with full protection.
+              Post project requisitions, explore world-class talent, review proposals, and disburse milestone escrow
+              with full protection.
             </p>
             <ul class="role-benefits-list">
               <li><span>✓</span> Publish jobs & inspect competitive proposals</li>
@@ -226,8 +436,10 @@
             <div class="role-card-header">
               <div class="role-icon-box">
                 <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                  <rect width="40" height="40" rx="10" fill="#e4f7e5"/>
-                  <path d="M12 24H28V14C28 12.9 27.1 12 26 12H14C12.9 12 12 12.9 12 14V24ZM13.5 14C13.5 13.72 13.72 13.5 14 13.5H26C26.28 13.5 26.5 13.72 26.5 14V22.5H13.5V14ZM10 26C10 25.45 10.45 25 11 25H29C29.55 25 30 25.45 30 26C30 26.55 29.55 27 29 27H11C10.45 27 10 26.55 10 26Z" fill="#14a800"/>
+                  <rect width="40" height="40" rx="10" fill="#e4f7e5" />
+                  <path
+                    d="M12 24H28V14C28 12.9 27.1 12 26 12H14C12.9 12 12 12.9 12 14V24ZM13.5 14C13.5 13.72 13.72 13.5 14 13.5H26C26.28 13.5 26.5 13.72 26.5 14V22.5H13.5V14ZM10 26C10 25.45 10.45 25 11 25H29C29.55 25 30 25.45 30 26C30 26.55 29.55 27 29 27H11C10.45 27 10 26.55 10 26Z"
+                    fill="#14a800" />
                 </svg>
               </div>
               <div class="custom-radio">
@@ -236,7 +448,8 @@
             </div>
             <h3 class="role-card-title">I'm a freelancer, looking for work</h3>
             <p class="role-card-desc">
-              Search curated open contracts, submit tailored bids, upload deliverables, and earn guaranteed milestone payouts.
+              Search curated open contracts, submit tailored bids, upload deliverables, and earn guaranteed milestone
+              payouts.
             </p>
             <ul class="role-benefits-list">
               <li><span>✓</span> Search jobs matched to your technical skills</li>
@@ -246,9 +459,9 @@
           </div>
         </div>
 
-        <!-- Evaluation shortcut for DBMS Admin/Analytics -->
-        <div class="admin-eval-shortcut">
-          <span>Or evaluate system administration:</span>
+        <!-- Evaluation shortcut for DBMS Admin/Analytics (strictly visible for ADMIN users only) -->
+        <div class="admin-eval-shortcut" id="admin-eval-shortcut" style="display: none;">
+          <span>System administrator options:</span>
           <button type="button" class="link-ninja-green" id="btn-select-admin-role">
             Open System Admin Console & SQL Analytics
           </button>
@@ -275,18 +488,20 @@
         <div class="nav-left">
           <a href="#" class="table-ninjas-nav-brand" id="workspace-brand-logo">
             <span class="table-ninjas-logo">
-          <svg class="table-ninjas-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="36" height="36" rx="10" fill="#14a800"/>
-            <path d="M6 13C6 9 10 7 18 7C26 7 30 9 30 13V23C30 27 26 29 18 29C10 29 6 27 6 23V13Z" fill="#001e00"/>
-            <rect x="9" y="10" width="18" height="3.5" rx="1.5" fill="#ffffff" opacity="0.9"/>
-            <circle cx="18" cy="11.75" r="1.2" fill="#14a800"/>
-            <path d="M10 16.5C10 15.5 12 15 18 15C24 15 26 15.5 26 16.5C26 18.5 24 19.5 18 19.5C12 19.5 10 18.5 10 16.5Z" fill="#0a2e0a"/>
-            <polygon points="12.5,16.5 16,17.2 13,18" fill="#14a800"/>
-            <polygon points="23.5,16.5 20,17.2 23,18" fill="#14a800"/>
-            <path d="M12 23.5H24M12 26H24" stroke="#14a800" stroke-width="1.3" stroke-linecap="round"/>
-          </svg>
-          <span class="table-ninjas-text">Table<span class="text-green">Ninjas</span></span>
-        </span>
+              <svg class="table-ninjas-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="36" height="36" rx="10" fill="#14a800" />
+                <path d="M6 13C6 9 10 7 18 7C26 7 30 9 30 13V23C30 27 26 29 18 29C10 29 6 27 6 23V13Z" fill="#001e00" />
+                <rect x="9" y="10" width="18" height="3.5" rx="1.5" fill="#ffffff" opacity="0.9" />
+                <circle cx="18" cy="11.75" r="1.2" fill="#14a800" />
+                <path
+                  d="M10 16.5C10 15.5 12 15 18 15C24 15 26 15.5 26 16.5C26 18.5 24 19.5 18 19.5C12 19.5 10 18.5 10 16.5Z"
+                  fill="#0a2e0a" />
+                <polygon points="12.5,16.5 16,17.2 13,18" fill="#14a800" />
+                <polygon points="23.5,16.5 20,17.2 23,18" fill="#14a800" />
+                <path d="M12 23.5H24M12 26H24" stroke="#14a800" stroke-width="1.3" stroke-linecap="round" />
+              </svg>
+              <span class="table-ninjas-text">Table<span class="text-green">Ninjas</span></span>
+            </span>
           </a>
 
           <!-- Dynamic Role Navigation -->
@@ -297,7 +512,7 @@
             <button class="nav-item-btn" data-tab="freelancer-tab" id="nav-btn-freelancer">
               Find Work
             </button>
-            <button class="nav-item-btn" data-tab="admin-tab" id="nav-btn-admin">
+            <button class="nav-item-btn" data-tab="admin-tab" id="nav-btn-admin" style="display: none;">
               Admin Console
             </button>
             <button class="nav-item-btn" data-tab="analytics-tab" id="nav-btn-analytics">
@@ -309,7 +524,8 @@
         <!-- Middle: Table Ninjas Search Pill -->
         <div class="nav-search-bar">
           <div class="search-input-pill">
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
@@ -325,21 +541,91 @@
 
         <!-- Right: Utility Icons & User Menu -->
         <div class="nav-right">
-          <!-- Notification Bell -->
-          <button class="nav-icon-btn" title="Notifications" id="btn-notifications">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          <!-- Theme Toggle Button -->
+          <button class="nav-icon-btn theme-toggle-btn" id="workspace-theme-toggle" title="Switch Theme (Dark / Light)"
+            aria-label="Toggle Theme">
+            <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
             </svg>
-            <span class="badge-dot"></span>
+            <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
           </button>
 
-          <!-- Direct Messages -->
-          <button class="nav-icon-btn" title="Messages">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            </svg>
-          </button>
+          <!-- Notification Bell & Interactive Flyout -->
+          <div class="user-menu-wrapper" id="notification-wrapper">
+            <button class="nav-icon-btn" title="Notifications" id="btn-notifications" aria-label="Notifications">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              <span class="badge-dot" id="notification-badge-dot"></span>
+            </button>
+
+            <!-- Notifications Dropdown Flyout -->
+            <div class="user-dropdown-flyout" id="flyout-notifications" style="width: 360px; right: -60px;">
+              <div class="dropdown-header" style="display:flex; justify-content:space-between; align-items:center; padding-bottom:8px;">
+                <div>
+                  <h4 style="margin:0; font-size:14px; font-weight:700; color:var(--text-dark);">Notifications</h4>
+                  <span style="font-size:11px; color:var(--ninja-green); font-weight:600;" id="notification-unread-count">3 new</span>
+                </div>
+                <button type="button" class="btn-flyout-action" id="btn-mark-all-read" style="background:none; border:none; color:var(--ninja-green); font-size:11px; font-weight:600; cursor:pointer;">
+                  Mark all as read
+                </button>
+              </div>
+              <div class="flyout-tabs" style="display:flex; gap:6px; padding:6px 0; border-bottom:1px solid var(--border-light); margin-bottom:6px;">
+                <button type="button" class="flyout-tab-btn active" data-filter="all" id="filter-notif-all" style="background:var(--ninja-green-tint); border:none; border-radius:12px; padding:3px 10px; font-size:11px; font-weight:600; color:var(--ninja-green); cursor:pointer;">All</button>
+                <button type="button" class="flyout-tab-btn" data-filter="unread" id="filter-notif-unread" style="background:none; border:none; border-radius:12px; padding:3px 10px; font-size:11px; font-weight:600; color:var(--text-muted); cursor:pointer;">Unread</button>
+              </div>
+              <div class="notification-list-container" id="notification-list-container" style="max-height:280px; overflow-y:auto;">
+                <!-- Dynamically generated notifications -->
+              </div>
+              <div class="dropdown-footer" style="padding-top:8px; border-top:1px solid var(--border-light); text-align:center;">
+                <button type="button" id="btn-clear-notifications" style="background:none; border:none; font-size:11px; color:var(--text-muted); cursor:pointer;">
+                  Clear all notifications
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Direct Messages & Interactive Flyout -->
+          <div class="user-menu-wrapper" id="messages-wrapper">
+            <button class="nav-icon-btn" title="Messages" id="btn-messages" aria-label="Direct Messages">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span class="badge-dot" id="messages-badge-dot"></span>
+            </button>
+
+            <!-- Messages Dropdown Flyout -->
+            <div class="user-dropdown-flyout" id="flyout-messages" style="width: 360px; right: -20px;">
+              <div class="dropdown-header" style="display:flex; justify-content:space-between; align-items:center; padding-bottom:8px;">
+                <div>
+                  <h4 style="margin:0; font-size:14px; font-weight:700; color:var(--text-dark);">Direct Messages</h4>
+                  <span style="font-size:11px; color:var(--ninja-green); font-weight:600;" id="messages-unread-count">2 conversations</span>
+                </div>
+                <button type="button" class="btn-flyout-action" id="btn-new-chat-trigger" style="background:none; border:none; color:var(--ninja-green); font-size:11px; font-weight:600; cursor:pointer;">
+                  + New Chat
+                </button>
+              </div>
+              <div class="messages-list-container" id="messages-list-container" style="max-height:280px; overflow-y:auto; margin-top:4px;">
+                <!-- Dynamically generated conversations -->
+              </div>
+              <div class="dropdown-footer" style="padding-top:8px; border-top:1px solid var(--border-light); text-align:center;">
+                <span class="text-dim" style="font-size:11px;">Table Ninjas Verified Direct Messaging</span>
+              </div>
+            </div>
+          </div>
 
           <!-- Active Persona Dropdown Menu -->
           <div class="user-menu-wrapper">
@@ -372,11 +658,18 @@
               </div>
 
               <div class="dropdown-divider"></div>
+              <button class="dropdown-item" id="btn-dropdown-theme-toggle">
+                <span id="dropdown-theme-icon">☀️</span>
+                <span id="dropdown-theme-text">Switch to Light Mode</span>
+              </button>
               <button class="dropdown-item" id="btn-dropdown-switch-role">
                 <span>🔄 Change Role (Client / Freelancer)</span>
               </button>
-              <button class="dropdown-item text-danger" id="btn-dropdown-logout">
+              <button class="dropdown-item" id="btn-dropdown-logout">
                 <span>🚪 Log Out</span>
+              </button>
+              <button class="dropdown-item text-danger" id="btn-dropdown-delete-account" style="color: #ef4444; border-top: 1px dashed var(--border-light); margin-top: 4px;">
+                <span>🗑️ Delete Account Permanently</span>
               </button>
             </div>
           </div>
@@ -388,7 +681,8 @@
     <div class="ninja-sub-bar">
       <div class="sub-bar-inner">
         <span class="sub-bar-tag">SVNIT CS203 DBMS Project</span>
-        <span class="sub-bar-text">Table Ninjas Freelance Marketplace &bull; Powered by MySQL 8.0 & Express REST API</span>
+        <span class="sub-bar-text">Table Ninjas Freelance Marketplace &bull; Powered by MySQL 8.0 & Express REST
+          API</span>
       </div>
     </div>
 
@@ -439,7 +733,8 @@
 
         <!-- Client Sub-Tabs (Jobs vs Contracts) -->
         <div class="sub-tabs">
-          <button class="sub-tab-btn active" data-subtab="client-jobs-view">My Job Postings & Received Proposals</button>
+          <button class="sub-tab-btn active" data-subtab="client-jobs-view">My Job Postings & Received
+            Proposals</button>
           <button class="sub-tab-btn" data-subtab="client-contracts-view">Active Contracts & Milestone Escrow</button>
         </div>
 
@@ -525,7 +820,8 @@
 
         <!-- Sub-Tabs (Browse Jobs vs Active Work vs Proposals) -->
         <div class="sub-tabs">
-          <button class="sub-tab-btn active" data-subtab="freelancer-browse-view">Explore Jobs (Marketplace Feed)</button>
+          <button class="sub-tab-btn active" data-subtab="freelancer-browse-view">Explore Jobs (Marketplace
+            Feed)</button>
           <button class="sub-tab-btn" data-subtab="freelancer-contracts-view">My Active Work & Deliverables</button>
           <button class="sub-tab-btn" data-subtab="freelancer-proposals-view">Submitted Proposals & Bids</button>
         </div>
@@ -642,7 +938,8 @@
         <div class="section-header">
           <div>
             <h2>Platform Governance & System Administration</h2>
-            <p class="section-desc">Arbitrate disputed contracts, inspect database relational integrity, and monitor active platform users.</p>
+            <p class="section-desc">Arbitrate disputed contracts, inspect database relational integrity, and monitor
+              active platform users.</p>
           </div>
           <button class="btn btn-sm btn-outline" id="btn-refresh-admin">🔄 Refresh All Data</button>
         </div>
@@ -734,7 +1031,8 @@
         <div class="section-header">
           <div>
             <h2>Relational SQL Analytics & Complex Reporting</h2>
-            <p class="section-desc">Demonstrating advanced relational queries: Multi-table JOINs, GROUP BY, aggregations, and subqueries.</p>
+            <p class="section-desc">Demonstrating advanced relational queries: Multi-table JOINs, GROUP BY,
+              aggregations, and subqueries.</p>
           </div>
           <button class="btn btn-sm btn-outline" id="btn-refresh-analytics">🔄 Refresh Reports</button>
         </div>
@@ -805,7 +1103,7 @@
         </div>
       </section>
 
-      
+
 
     </main>
   </div>
@@ -1047,6 +1345,333 @@
           <button type="submit" class="btn-ninja-primary">Publish Review</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- AUTHENTICATION INTERACTIVE MODALS                                   -->
+  <!-- =================================================================== -->
+
+  <!-- Modal: Google Sign-In Dialog -->
+  <div class="modal" id="modal-google-login">
+    <div class="modal-dialog modal-auth-oauth">
+      <div class="modal-header oauth-header">
+        <div class="oauth-brand-row">
+          <svg class="oauth-logo" width="24" height="24" viewBox="0 0 24 24">
+            <path fill="#4285F4"
+              d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
+            <path fill="#34A853"
+              d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z" />
+            <path fill="#FBBC05"
+              d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.16 0 9.94 0 12s.45 3.84 1.25 5.42l4.03-3.15z" />
+            <path fill="#EA4335"
+              d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
+          </svg>
+          <div>
+            <h3 id="google-modal-title">Sign in with Google</h3>
+            <span class="text-muted" style="font-size:12px;">to continue to Table Ninjas</span>
+          </div>
+        </div>
+        <button class="btn-close" data-close-modal>&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-dim mb-3" id="google-oauth-demo-intro" style="font-size:13px;">Choose a connected Google profile to sign in instantly:</p>
+        <div class="oauth-account-list" id="google-oauth-demo-accounts">
+          <div class="oauth-account-card" data-oauth-email="alice@techcorp.io" data-oauth-role="CLIENT">
+            <div class="oauth-avatar" style="background:#3b82f6;">AJ</div>
+            <div class="oauth-meta">
+              <strong>Alice Johnson</strong>
+              <span>alice@techcorp.io &bull; Client</span>
+            </div>
+            <span class="badge badge-primary">Continue</span>
+          </div>
+          <div class="oauth-account-card" data-oauth-email="faisal@codecraft.dev" data-oauth-role="FREELANCER">
+            <div class="oauth-avatar" style="background:#10b981;">FK</div>
+            <div class="oauth-meta">
+              <strong>Faisal Khan</strong>
+              <span>faisal@codecraft.dev &bull; Freelancer</span>
+            </div>
+            <span class="badge badge-success">Continue</span>
+          </div>
+          <div class="oauth-account-card" data-oauth-email="grace@fullstack.io" data-oauth-role="FREELANCER">
+            <div class="oauth-avatar" style="background:#8b5cf6;">GH</div>
+            <div class="oauth-meta">
+              <strong>Grace Hopper</strong>
+              <span>grace@fullstack.io &bull; Freelancer</span>
+            </div>
+            <span class="badge badge-success">Continue</span>
+          </div>
+        </div>
+
+        <div class="auth-divider my-3" id="google-oauth-divider">
+          <span>or sign in with custom Google email</span>
+        </div>
+
+        <form id="form-custom-google-login">
+          <div class="form-group mb-2">
+            <label class="form-label-ninja" style="font-size:12px;">Google Email</label>
+            <input type="email" id="custom-google-email" class="form-input-ninja" placeholder="yourname@gmail.com" required autocomplete="email">
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label-ninja" style="font-size:12px;">Google Account Password</label>
+            <div class="input-with-icon">
+              <input type="password" id="custom-google-password" class="form-input-ninja" placeholder="Enter password" required autocomplete="current-password">
+              <button type="button" class="btn-toggle-eye" data-target="custom-google-password" title="Show/Hide">👁️</button>
+            </div>
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label-ninja" style="font-size:12px;">Table Ninjas Role</label>
+            <select id="custom-google-role" class="form-select">
+              <option value="CLIENT">Client (Hire talent & post jobs)</option>
+              <option value="FREELANCER">Freelancer (Work & bid on projects)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-ninja-primary w-100" id="btn-submit-google-oauth">
+            Sign in with Google Account
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Apple ID Sign-In Dialog -->
+  <div class="modal" id="modal-apple-login">
+    <div class="modal-dialog modal-auth-oauth">
+      <div class="modal-header oauth-header">
+        <div class="oauth-brand-row">
+          <svg class="oauth-logo" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.58.67-.99 1.74-.86 2.76.99.08 2.01-.52 2.57-1.26z" />
+          </svg>
+          <div>
+            <h3 id="apple-modal-title">Sign in with Apple ID</h3>
+            <span class="text-muted" style="font-size:12px;">Use your Apple credentials to continue</span>
+          </div>
+        </div>
+        <button class="btn-close" data-close-modal>&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-apple-login">
+          <div class="form-group mb-3">
+            <label class="form-label-ninja" style="font-size:12px;">Apple ID (Email or Phone Number)</label>
+            <input type="text" id="apple-login-id" class="form-input-ninja" placeholder="Enter Apple ID (email or phone)" required autocomplete="username">
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label-ninja" style="font-size:12px;">Password</label>
+            <div class="input-with-icon">
+              <input type="password" id="apple-login-password" class="form-input-ninja" placeholder="Apple Password" required autocomplete="current-password">
+              <button type="button" class="btn-toggle-eye" data-target="apple-login-password" title="Show/Hide">👁️</button>
+            </div>
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label-ninja" style="font-size:12px;">Table Ninjas Role</label>
+            <select id="apple-login-role" class="form-select">
+              <option value="FREELANCER">Freelancer (Work & Earn)</option>
+              <option value="CLIENT">Client (Hire talent)</option>
+            </select>
+          </div>
+          <div class="form-options mb-3">
+            <label class="remember-checkbox">
+              <input type="checkbox" checked id="apple-hide-email">
+              <span style="font-size:12px;">Hide My Email (Forward via Apple Private Relay)</span>
+            </label>
+          </div>
+          <button type="submit" class="btn-ninja-primary w-100" style="background:#000000; color:#ffffff;" id="btn-submit-apple-oauth">
+            Continue with Apple ID
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Forgot Password Flow -->
+  <div class="modal" id="modal-forgot-password">
+    <div class="modal-dialog modal-auth-forgot">
+      <div class="modal-header">
+        <div>
+          <h3>Reset Your Password</h3>
+          <p class="text-muted" style="font-size:13px; margin:0;">Verify permission through a code sent to your registered email</p>
+        </div>
+        <button class="btn-close" data-close-modal>&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Stage 1: Enter Registered Email Address -->
+        <div id="forgot-stage-1">
+          <p class="text-body mb-3" style="font-size:14px; color: var(--text-muted); line-height: 1.5;">
+            Enter your registered Table Ninjas email address. A 6-digit confirmation code will be dispatched directly to your registered inbox to authorize your password reset.
+          </p>
+          <div class="form-group mb-3">
+            <label for="forgot-input-email" class="form-label-ninja">Registered Email Address *</label>
+            <div class="input-with-icon">
+              <input type="email" id="forgot-input-email" class="form-input-ninja" placeholder="Enter your registered email (e.g. name@company.com)" required autocomplete="email">
+              <span class="input-icon">✉️</span>
+            </div>
+          </div>
+          <button type="button" class="btn-ninja-primary w-100" id="btn-send-permission-email">
+            Send Confirmation Code to Registered Email
+          </button>
+        </div>
+
+        <!-- Stage 2: Verification Code & New Password -->
+        <div id="forgot-stage-2" style="display: none;">
+          <div class="email-dispatch-card mb-3" id="forgot-dispatch-status-card">
+            <div id="forgot-dispatch-status-banner">
+              <div class="email-dispatch-header">
+                <span class="badge badge-success" id="forgot-dispatch-badge">📨 Code Sent to Email</span>
+                <span class="text-dim" style="font-size:11px;">security@tableninjas.com</span>
+              </div>
+              <p style="font-size:13px; margin: 8px 0 4px; color: var(--text-dark);">
+                A 6-digit confirmation code has been processed for:
+              </p>
+            </div>
+            <div style="font-size:15px; font-weight:700; color: var(--ninja-green); margin-bottom: 6px;" id="forgot-dispatched-email-label">
+              user@example.com
+            </div>
+            <p style="font-size:12px; color: var(--text-muted); margin: 0 0 16px; line-height: 1.4;" id="forgot-dispatched-instructions">
+              Please enter the 6-digit verification code below to set your new password.
+            </p>
+          </div>
+
+          <form id="form-reset-password">
+            <div class="form-group mb-3">
+              <label for="forgot-input-code" class="form-label-ninja">6-Digit Confirmation Code *</label>
+              <div class="input-with-icon">
+                <input type="text" id="forgot-input-code" class="form-input-ninja" placeholder="Enter 6-digit code from email" maxlength="6" required pattern="[0-9]{6}" autocomplete="one-time-code">
+                <span class="input-icon">🔑</span>
+              </div>
+            </div>
+
+            <div class="form-group mb-3">
+              <label for="forgot-new-password" class="form-label-ninja">New Password (min 6 characters) *</label>
+              <div class="input-with-icon">
+                <input type="password" id="forgot-new-password" class="form-input-ninja" placeholder="Enter new password" minlength="6" required autocomplete="new-password">
+                <button type="button" class="btn-toggle-eye" data-target="forgot-new-password" title="Show/Hide">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group mb-3">
+              <label for="forgot-confirm-password" class="form-label-ninja">Confirm New Password *</label>
+              <div class="input-with-icon">
+                <input type="password" id="forgot-confirm-password" class="form-input-ninja" placeholder="Re-enter new password" minlength="6" required autocomplete="new-password">
+                <button type="button" class="btn-toggle-eye" data-target="forgot-confirm-password" title="Show/Hide">👁️</button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-ninja-primary w-100" id="btn-submit-reset-password">
+              Change & Update Password
+            </button>
+
+            <div class="d-flex justify-content-between align-items-center mt-3" style="display: flex; justify-content: space-between; font-size: 13px;">
+              <button type="button" id="btn-forgot-resend" style="background: none; border: none; color: var(--ninja-green); cursor: pointer; font-size: 12px; font-weight: 600; padding: 0;">
+                🔄 Resend code to email
+              </button>
+              <button type="button" id="btn-forgot-change-email" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; padding: 0;">
+                ← Change email address
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Password Changed Success Pop Message -->
+  <div class="modal" id="modal-password-success">
+    <div class="modal-dialog modal-sm text-center" style="max-width: 440px;">
+      <div class="modal-body py-4 px-4 text-center">
+        <div class="success-pop-icon" style="font-size: 50px; margin-bottom: 14px;">✅</div>
+        <h3 class="mb-2" style="font-family: var(--font-heading); font-size: 22px; color: var(--text-dark);">
+          Password Changed Successfully!
+        </h3>
+        <p class="text-muted mb-4" style="font-size: 14px; line-height: 1.5;">
+          Your Table Ninjas account password has been updated securely. You can now log in with your new credentials.
+        </p>
+        <button type="button" class="btn-ninja-primary w-100" id="btn-password-success-done" data-close-modal>
+          Proceed to Log In
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Interactive Direct Chat & Messaging -->
+  <div class="modal" id="modal-direct-chat">
+    <div class="modal-dialog" style="max-width: 520px; border-radius: 12px; overflow: hidden; padding: 0;">
+      <div class="modal-header" style="background: var(--bg-card); padding: 14px 18px; border-bottom: 1px solid var(--border-medium); display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="user-avatar" id="chat-recipient-avatar" style="width: 36px; height: 36px; font-size: 13px;">AJ</div>
+          <div>
+            <h4 id="chat-recipient-name" style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-dark);">Alice Johnson</h4>
+            <span id="chat-recipient-status" style="font-size: 11px; color: var(--ninja-green);">● Active on Table Ninjas</span>
+          </div>
+        </div>
+        <button class="btn-close" data-close-modal id="btn-close-direct-chat">&times;</button>
+      </div>
+      <div id="chat-messages-container" style="padding: 16px; height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: var(--bg-body);">
+        <!-- Messages loaded dynamically -->
+      </div>
+      <form id="form-chat-send" style="padding: 12px 16px; background: var(--bg-card); border-top: 1px solid var(--border-medium); display: flex; gap: 8px;">
+        <input type="text" id="chat-input-text" class="form-input-ninja" placeholder="Write a direct message..." style="flex: 1;" required autocomplete="off">
+        <button type="submit" class="btn-ninja-primary btn-sm" style="padding: 8px 16px; display: flex; align-items: center; gap: 6px;">
+          <span>Send</span> <span>➤</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Notification Details & Action -->
+  <div class="modal" id="modal-notification-detail">
+    <div class="modal-dialog" style="max-width: 480px; border-radius: 12px; overflow: hidden;">
+      <div class="modal-header" style="background: var(--bg-card); padding: 14px 18px; border-bottom: 1px solid var(--border-medium); display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div id="notif-detail-icon" style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-muted); display: flex; align-items: center; justify-content: center; font-size: 18px;">🔔</div>
+          <div>
+            <h4 id="notif-detail-title" style="margin: 0; font-size: 15px; font-weight: 700; color: var(--text-dark);">Notification Title</h4>
+            <span id="notif-detail-time" style="font-size: 11px; color: var(--text-dim);">5m ago</span>
+          </div>
+        </div>
+        <button class="btn-close" data-close-modal id="btn-close-notif-detail">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <p id="notif-detail-desc" style="font-size: 14px; color: var(--text-dark); line-height: 1.5; margin-bottom: 20px;">Notification details...</p>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" class="btn btn-outline" data-close-modal>Dismiss</button>
+          <button type="button" class="btn-ninja-primary" id="btn-notif-detail-action">View in Workspace ➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Permanent Account Deletion -->
+  <div class="modal" id="modal-delete-account">
+    <div class="modal-dialog modal-sm" style="max-width: 460px; border-radius: 12px; overflow: hidden;">
+      <div class="modal-header" style="background: rgba(239, 68, 68, 0.08); border-bottom: 1px solid rgba(239, 68, 68, 0.2); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 24px;">⚠️</span>
+          <div>
+            <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: var(--danger);">Permanently Delete Account</h3>
+            <span style="font-size: 11px; color: var(--text-muted);">Irreversible account termination</span>
+          </div>
+        </div>
+        <button class="btn-close" data-close-modal id="btn-close-delete-modal">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <p style="font-size: 13.5px; color: var(--text-dark); line-height: 1.5; margin-bottom: 14px;">
+          Are you sure you want to permanently delete your Table Ninjas account (<strong id="delete-account-target-name">User</strong>)?
+        </p>
+        <div style="background: var(--bg-muted); border-left: 3px solid var(--danger); padding: 10px 14px; border-radius: 4px; font-size: 12px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.4;">
+          This action is permanent and cannot be undone. All your profile information, job requisitions, bids, active proposals, and contracts associated with this account will be erased.
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label-ninja" for="delete-account-confirm-input" style="font-size: 12px;">Type <strong>DELETE</strong> below to confirm:</label>
+          <input type="text" id="delete-account-confirm-input" class="form-input-ninja" placeholder="DELETE" autocomplete="off">
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+          <button type="button" class="btn btn-outline" data-close-modal id="btn-cancel-delete-account">Cancel</button>
+          <button type="button" class="btn btn-danger" id="btn-confirm-delete-account" style="background: var(--danger); color: #fff; border: none; padding: 8px 16px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer;">
+            🗑️ Permanently Delete Account
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 

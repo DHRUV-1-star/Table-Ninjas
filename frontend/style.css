@@ -42,8 +42,72 @@
    Pixel-perfect authentic Table Ninjas branding, typography, cards, and UI flows.
    ============================================================================= */
 
-:root {
-  /* Table Ninjas Signature Brand Palette */
+:root,
+[data-theme="dark"] {
+  /* Table Ninjas Emerald Dark Palette (Default Dark Mode) */
+  --ninja-green: #10b981;
+  --ninja-green-hover: #34d399;
+  --ninja-green-active: #059669;
+  --ninja-green-dark: #064e3b;
+  --ninja-green-light: rgba(16, 185, 129, 0.16);
+  --ninja-green-tint: rgba(16, 185, 129, 0.08);
+  --ninja-green-border: rgba(16, 185, 129, 0.32);
+
+  /* Neutrals & Surfaces - Deep obsidian / sleek slate */
+  --bg-page: #0b0f17;
+  --bg-card: #111827;
+  --bg-card-hover: #172033;
+  --bg-muted: #151f30;
+  --bg-elevated: #1a263c;
+
+  /* Typography Colors */
+  --text-dark: #f8fafc;
+  --text-body: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --text-on-green: #041f10;
+
+  /* Borders & Dividers */
+  --border-light: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.15);
+  --border-hover: #10b981;
+  --border-focus: #10b981;
+
+  /* Functional Accents */
+  --primary: #10b981;
+  --accent: #38bdf8;
+  --success: #10b981;
+  --info: #38bdf8;
+  --warning: #fbbf24;
+  --danger: #f87171;
+
+  /* Border Radii */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 4px 18px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 18px rgba(16, 185, 129, 0.2);
+  --shadow-modal: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 1px rgba(255, 255, 255, 0.12);
+  --shadow-green-glow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+
+  /* Fonts */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-heading: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --transition-fast: 0.15s ease;
+  --transition-smooth: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  /* Table Ninjas Signature Brand Palette (Light Mode) */
   --ninja-green: #14a800;
   --ninja-green-hover: #108a00;
   --ninja-green-active: #0c6b00;
@@ -80,14 +144,6 @@
   --warning: #bc5100;
   --danger: #cf2222;
 
-  /* Border Radii */
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-pill: 999px;
-
   /* Shadows */
   --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05);
   --shadow-card: 0 2px 8px rgba(0, 30, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
@@ -95,12 +151,7 @@
   --shadow-modal: 0 20px 48px rgba(0, 30, 0, 0.16);
   --shadow-green-glow: 0 0 0 3px rgba(20, 168, 0, 0.2);
 
-  /* Fonts */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-heading: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-
-  --transition-fast: 0.15s ease;
-  --transition-smooth: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  color-scheme: light;
 }
 
 /* Base Reset */
@@ -122,7 +173,120 @@ body.ninja-app {
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  transition: background-color var(--transition-smooth), color var(--transition-smooth);
 }
+
+/* Custom Scrollbar for Sleek Dark Experience */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-page);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ninja-green);
+}
+
+/* Caret & Selection */
+::selection {
+  background: var(--ninja-green);
+  color: var(--text-on-green);
+}
+
+input, textarea, select {
+  caret-color: var(--ninja-green);
+}
+
+/* Theme Toggle Button Component */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--ninja-green);
+  color: var(--ninja-green);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-btn-compact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-medium);
+  color: var(--text-dark);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all var(--transition-fast);
+}
+
+.theme-toggle-btn-compact:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--ninja-green);
+  transform: scale(1.08);
+}
+
+.nav-icon-btn.theme-toggle-btn {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-medium);
+  color: var(--text-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.nav-icon-btn.theme-toggle-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--ninja-green);
+  color: var(--ninja-green);
+  transform: translateY(-1px);
+}
+
+/* Sun/Moon icon visibility based on active theme */
+:root:not([data-theme="light"]) .theme-icon-sun,
+[data-theme="dark"] .theme-icon-sun {
+  display: block;
+}
+:root:not([data-theme="light"]) .theme-icon-moon,
+[data-theme="dark"] .theme-icon-moon {
+  display: none;
+}
+
+[data-theme="light"] .theme-icon-sun {
+  display: none;
+}
+[data-theme="light"] .theme-icon-moon {
+  display: block;
+}
+
 
 /* Page View Visibility Switcher */
 .page-view {
@@ -144,7 +308,7 @@ body.ninja-app {
    TABLE NINJAS MINIMAL HEADER (For Login & Role Selection)
    ============================================================================= */
 .ninja-minimal-header {
-  background: #ffffff;
+  background: var(--bg-card);
   border-bottom: 1px solid var(--border-light);
   padding: 16px 24px;
 }
@@ -242,7 +406,7 @@ body.ninja-app {
 }
 
 .login-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
   padding: 40px 36px;
@@ -299,12 +463,12 @@ body.ninja-app {
 }
 
 .demo-chip {
-  background: #ffffff;
+  background: var(--bg-elevated);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-pill);
   padding: 6px 12px;
   font-size: 12px;
-  color: var(--text-body);
+  color: var(--text-dark);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -382,8 +546,8 @@ body.ninja-app {
   width: 100%;
   padding: 12px 38px 12px 14px;
   font-size: 15px;
-  color: var(--text-body);
-  background: #ffffff;
+  color: var(--text-dark);
+  background: var(--bg-elevated);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-sm);
   outline: none;
@@ -460,7 +624,7 @@ body.ninja-app {
 }
 
 .btn-ninja-social {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-pill);
   padding: 10px 18px;
@@ -477,8 +641,8 @@ body.ninja-app {
 }
 
 .btn-ninja-social:hover {
-  background: var(--bg-muted);
-  border-color: var(--text-muted);
+  background: var(--bg-card-hover);
+  border-color: var(--ninja-green);
 }
 
 .btn-ninja-social .social-icon {
@@ -558,7 +722,7 @@ body.ninja-app {
 }
 
 .role-option-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 2px solid var(--border-medium);
   border-radius: var(--radius-lg);
   padding: 30px 26px;
@@ -576,8 +740,8 @@ body.ninja-app {
 
 .role-option-card.selected {
   border-color: var(--ninja-green);
-  background: #f7fcf7;
-  box-shadow: 0 4px 18px rgba(20, 168, 0, 0.12);
+  background: var(--ninja-green-tint);
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.2);
 }
 
 .role-card-header {
@@ -593,6 +757,11 @@ body.ninja-app {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.role-icon-box svg rect {
+  fill: var(--ninja-green-light);
+  transition: fill var(--transition-fast);
 }
 
 /* Custom Radio Indicator */
@@ -689,7 +858,7 @@ body.ninja-app {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: #ffffff;
+  background: var(--bg-card);
   border-bottom: 1px solid var(--border-medium);
   box-shadow: var(--shadow-subtle);
 }
@@ -754,7 +923,7 @@ body.ninja-app {
 .search-input-pill {
   display: flex;
   align-items: center;
-  background: #ffffff;
+  background: var(--bg-elevated);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-pill);
   padding: 4px 6px 4px 14px;
@@ -775,14 +944,19 @@ body.ninja-app {
 .search-input-pill input {
   border: none;
   outline: none;
+  background: transparent;
   font-family: inherit;
   font-size: 14px;
-  color: var(--text-body);
+  color: var(--text-dark);
   width: 100%;
 }
 
+.search-input-pill input::placeholder {
+  color: var(--text-muted);
+}
+
 .search-type-dropdown select {
-  border: none;
+  border: 1px solid transparent;
   background: var(--bg-muted);
   font-size: 12px;
   font-weight: 600;
@@ -791,6 +965,16 @@ body.ninja-app {
   border-radius: var(--radius-pill);
   cursor: pointer;
   outline: none;
+  transition: all var(--transition-fast);
+}
+
+.search-type-dropdown select:hover {
+  border-color: var(--ninja-green);
+}
+
+.search-type-dropdown select option {
+  background: var(--bg-card);
+  color: var(--text-dark);
 }
 
 /* Right Header Controls */
@@ -827,7 +1011,7 @@ body.ninja-app {
   height: 8px;
   border-radius: 50%;
   background: var(--danger);
-  border: 1.5px solid #ffffff;
+  border: 1.5px solid var(--bg-card);
 }
 
 /* User Menu Avatar & Dropdown */
@@ -893,7 +1077,7 @@ body.ninja-app {
   top: calc(100% + 8px);
   right: 0;
   width: 290px;
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-modal);
@@ -952,7 +1136,8 @@ body.ninja-app {
   padding: 8px 10px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-medium);
-  background: #ffffff;
+  background: var(--bg-elevated);
+  color: var(--text-dark);
   font-family: inherit;
   outline: none;
 }
@@ -1048,7 +1233,7 @@ body.ninja-app {
 
 /* Table Ninjas Hero Greeting Banner */
 .ninja-hero-banner {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
   padding: 28px 32px;
@@ -1057,7 +1242,7 @@ body.ninja-app {
   align-items: center;
   justify-content: space-between;
   box-shadow: var(--shadow-card);
-  background-image: radial-gradient(circle at 95% 50%, rgba(20, 168, 0, 0.08) 0%, transparent 60%);
+  background-image: radial-gradient(circle at 95% 50%, var(--ninja-green-light) 0%, transparent 60%);
 }
 
 .greeting-time {
@@ -1087,7 +1272,7 @@ body.ninja-app {
 }
 
 .metric-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
   padding: 20px;
@@ -1167,7 +1352,7 @@ body.ninja-app {
 
 /* Table Ninjas Base Card */
 .ninja-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
   padding: 28px;
@@ -1273,10 +1458,10 @@ body.ninja-app {
 
 .btn-primary { background: var(--ninja-green); color: #fff; }
 .btn-primary:hover { background: var(--ninja-green-hover); }
-.btn-secondary { background: var(--bg-muted); color: var(--text-dark); border-color: var(--border-medium); }
-.btn-secondary:hover { background: #e2ece2; }
-.btn-outline { background: #fff; border-color: var(--border-medium); color: var(--text-dark); }
-.btn-outline:hover { border-color: var(--ninja-green); color: var(--ninja-green); }
+.btn-secondary { background: var(--bg-muted); color: var(--text-dark); border: 1px solid var(--border-medium); }
+.btn-secondary:hover { background: var(--bg-card-hover); border-color: var(--border-hover); }
+.btn-outline { background: var(--bg-card); border: 1px solid var(--border-medium); color: var(--text-dark); }
+.btn-outline:hover { border-color: var(--ninja-green); color: var(--ninja-green); background: var(--bg-card-hover); }
 .btn-danger { background: var(--danger); color: #fff; }
 .btn-danger:hover { background: #b91c1c; }
 .btn-success { background: var(--ninja-green); color: #fff; }
@@ -1285,7 +1470,7 @@ body.ninja-app {
 
 /* Freelancer Profile Header Card */
 .freelancer-profile-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
   padding: 28px 32px;
@@ -1394,15 +1579,30 @@ body.ninja-app {
 
 .form-input, .form-select, .form-textarea {
   width: 100%;
-  padding: 9px 12px;
+  padding: 10px 14px;
   font-size: 14px;
-  color: var(--text-body);
-  background: #ffffff;
+  color: var(--text-dark);
+  background: var(--bg-elevated);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-sm);
   outline: none;
   font-family: inherit;
   transition: all var(--transition-fast);
+}
+
+.form-input::placeholder, .form-textarea::placeholder {
+  color: var(--text-subtle);
+  opacity: 0.85;
+}
+
+.form-select option {
+  background: var(--bg-card);
+  color: var(--text-dark);
+}
+
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
@@ -1437,7 +1637,7 @@ body.ninja-app {
 }
 
 .job-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
   padding: 24px 28px;
@@ -1501,18 +1701,28 @@ body.ninja-app {
 }
 
 .skill-tag {
-  background: var(--ninja-green-tint);
-  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  background: var(--ninja-green-light);
+  color: var(--ninja-green-dark);
+  border: 1px solid var(--ninja-green-border);
   padding: 4px 12px;
   border-radius: var(--radius-pill);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   transition: all var(--transition-fast);
 }
 
+[data-theme="dark"] .skill-tag {
+  background: rgba(16, 185, 129, 0.16);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
 .skill-tag:hover {
-  background: var(--ninja-green-light);
-  color: var(--ninja-green-hover);
+  background: var(--ninja-green);
+  color: #ffffff;
+  border-color: var(--ninja-green);
 }
 
 .job-card-footer {
@@ -1536,7 +1746,7 @@ body.ninja-app {
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   padding: 20px;
-  background: #ffffff;
+  background: var(--bg-card);
 }
 
 .contract-header {
@@ -1619,7 +1829,9 @@ body.ninja-app {
 }
 
 .modal-dialog {
-  background: #ffffff;
+  background: var(--bg-card);
+  color: var(--text-dark);
+  border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
   max-width: 600px;
   width: 100%;
@@ -1638,6 +1850,7 @@ body.ninja-app {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: var(--bg-card);
 }
 
 .modal-header h3 {
@@ -1651,13 +1864,19 @@ body.ninja-app {
   background: none;
   border: none;
   font-size: 24px;
-  color: var(--text-subtle);
+  color: var(--text-muted);
   cursor: pointer;
   line-height: 1;
+  transition: color var(--transition-fast);
+}
+
+.btn-close:hover {
+  color: var(--text-dark);
 }
 
 .modal-body {
   padding: 24px;
+  background: var(--bg-card);
 }
 
 .modal-footer {
@@ -1691,24 +1910,106 @@ body.ninja-app {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  max-height: 140px;
+  max-height: 150px;
   overflow-y: auto;
-  padding: 10px;
+  padding: 12px;
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-sm);
   background: var(--bg-muted);
+  scrollbar-width: thin;
+}
+
+.skills-multiselect::-webkit-scrollbar {
+  width: 6px;
+}
+.skills-multiselect::-webkit-scrollbar-track {
+  background: transparent;
+}
+.skills-multiselect::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 4px;
 }
 
 .skill-checkbox-label {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  background: #ffffff;
-  padding: 4px 10px;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--bg-card);
+  color: var(--text-dark);
+  padding: 6px 12px;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border-medium);
   cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.skill-checkbox-label span {
+  color: var(--text-dark);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.skill-checkbox-label input[type="checkbox"] {
+  accent-color: var(--ninja-green);
+  cursor: pointer;
+  width: 15px;
+  height: 15px;
+}
+
+.skill-checkbox-label:hover {
+  background: var(--ninja-green-light);
+  border-color: var(--ninja-green);
+}
+
+.skill-checkbox-label:hover span {
+  color: var(--ninja-green);
+}
+
+.skill-checkbox-label:has(input:checked),
+.skill-checkbox-label.selected {
+  background: var(--ninja-green-light);
+  border-color: var(--ninja-green);
+}
+
+.skill-checkbox-label:has(input:checked) span,
+.skill-checkbox-label.selected span {
+  color: var(--ninja-green);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .skill-checkbox-label {
+  background: var(--bg-elevated);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .skill-checkbox-label span {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .skill-checkbox-label:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+}
+
+[data-theme="dark"] .skill-checkbox-label:hover span {
+  color: #34d399;
+}
+
+[data-theme="dark"] .skill-checkbox-label:has(input:checked),
+[data-theme="dark"] .skill-checkbox-label.selected {
+  background: rgba(16, 185, 129, 0.28);
+  border-color: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="dark"] .skill-checkbox-label:has(input:checked) span,
+[data-theme="dark"] .skill-checkbox-label.selected span {
+  color: #34d399;
+  font-weight: 600;
 }
 
 .callout {
@@ -1739,7 +2040,7 @@ body.ninja-app {
 
 .toast {
   pointer-events: auto;
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-left: 5px solid var(--ninja-green);
   border-radius: var(--radius-sm);
@@ -1838,7 +2139,7 @@ body.ninja-app {
 
 /* Master Navigation Menu (Section D.1) */
 .a11-menu-nav-wrapper {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
   padding: 6px;
@@ -1868,14 +2169,14 @@ body.ninja-app {
 }
 
 .a11-menu-btn:hover {
-  background: #f4f5f8;
+  background: var(--bg-card-hover);
   color: var(--text-dark);
 }
 
 .a11-menu-btn.active {
-  background: #10421e;
+  background: var(--ninja-green);
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(16, 66, 30, 0.25);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
 }
 
 .a11-menu-btn .menu-tag {
@@ -1933,7 +2234,7 @@ body.ninja-app {
 }
 
 .stat-ribbon-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
   padding: 16px 20px;
@@ -1955,7 +2256,7 @@ body.ninja-app {
   font-family: var(--font-heading);
   font-size: 26px;
   font-weight: 800;
-  color: #10421e;
+  color: var(--ninja-green);
   line-height: 1.2;
 }
 
@@ -1973,7 +2274,7 @@ body.ninja-app {
 }
 
 .table-stat-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
   padding: 18px 20px;
@@ -2112,7 +2413,7 @@ body.ninja-app {
 }
 
 .format-btn {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: 4px;
   padding: 4px 10px;
@@ -2124,8 +2425,8 @@ body.ninja-app {
 }
 
 .format-btn.active {
-  background: #14a800;
-  border-color: #14a800;
+  background: var(--ninja-green);
+  border-color: var(--ninja-green);
   color: #ffffff;
 }
 
@@ -2224,7 +2525,7 @@ body.ninja-app {
 
 /* Form Controls & Preset Chips */
 .a11-form-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
   padding: 24px;
@@ -2232,7 +2533,7 @@ body.ninja-app {
 }
 
 .a11-filter-control-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
   padding: 20px 24px;
@@ -2260,8 +2561,8 @@ body.ninja-app {
 }
 
 .preset-chip {
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-medium);
   border-radius: 9999px;
   padding: 3px 10px;
   font-size: 11px;
@@ -2272,14 +2573,14 @@ body.ninja-app {
 }
 
 .preset-chip:hover {
-  background: #14a800;
-  border-color: #14a800;
+  background: var(--ninja-green);
+  border-color: var(--ninja-green);
   color: #ffffff;
 }
 
 .a11-response-box {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: var(--ninja-green-light);
+  border: 1px solid var(--ninja-green-border);
   border-radius: var(--radius-sm);
   padding: 16px;
 }
@@ -2294,19 +2595,19 @@ body.ninja-app {
 .response-title {
   font-size: 14px;
   font-weight: 700;
-  color: #166534;
+  color: var(--ninja-green);
 }
 
 .exec-time {
   font-size: 12px;
   font-weight: 600;
-  color: #15803d;
+  color: var(--ninja-green);
 }
 
 /* Aggregate Single Metric Card */
 .agg-metric-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
-  border: 1px solid #86efac;
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
   padding: 24px;
   text-align: center;
@@ -2327,7 +2628,7 @@ body.ninja-app {
   font-family: var(--font-heading);
   font-size: 42px;
   font-weight: 800;
-  color: #10421e;
+  color: var(--ninja-green);
   display: block;
   line-height: 1.1;
 }
@@ -2347,7 +2648,7 @@ body.ninja-app {
 }
 
 .a11-card-box {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
   padding: 20px;
@@ -2454,7 +2755,7 @@ body.ninja-app {
 }
 
 .a11-explanation-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
   padding: 20px 24px;
@@ -2465,7 +2766,7 @@ body.ninja-app {
   font-family: var(--font-heading);
   font-size: 16px;
   font-weight: 700;
-  color: #10421e;
+  color: var(--ninja-green);
   margin-bottom: 12px;
 }
 
@@ -2487,5 +2788,533 @@ body.ninja-app {
   gap: 8px;
   font-size: 13px;
   font-weight: 600;
+}
+
+/* =============================================================================
+   AUTHENTICATION & SIGNUP ENHANCEMENTS
+   ============================================================================= */
+
+/* Password Show/Hide Toggle Eye Button */
+.btn-toggle-eye {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0.65;
+  transition: all var(--transition-fast);
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-toggle-eye:hover {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.15);
+}
+
+/* Sign Up Card & Role Choice Selector */
+.signup-card {
+  max-width: 600px;
+}
+
+.signup-role-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.signup-role-card {
+  background: var(--bg-elevated);
+  border: 2px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+}
+
+.signup-role-card:hover {
+  border-color: var(--ninja-green);
+  background: var(--bg-card-hover);
+  transform: translateY(-2px);
+}
+
+.signup-role-card.selected {
+  border-color: var(--ninja-green);
+  background: var(--ninja-green-tint);
+  box-shadow: 0 4px 12px rgba(20, 168, 0, 0.15);
+}
+
+.signup-role-card .role-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.signup-role-card .role-icon {
+  font-size: 24px;
+}
+
+.signup-role-card strong {
+  font-size: 15px;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.signup-role-card p {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* OAuth Modal Styles */
+.modal-auth-oauth {
+  max-width: 480px;
+}
+
+.oauth-header {
+  padding: 16px 20px;
+}
+
+.oauth-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.oauth-logo {
+  flex-shrink: 0;
+}
+
+.oauth-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-dark);
+}
+
+.oauth-account-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.oauth-account-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.oauth-account-card:hover {
+  border-color: var(--ninja-green);
+  background: var(--ninja-green-tint);
+  transform: translateX(3px);
+}
+
+.oauth-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.oauth-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.oauth-meta strong {
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+.oauth-meta span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Forgot Password Modal & Email Dispatch Simulation */
+.modal-auth-forgot {
+  max-width: 500px;
+}
+
+.email-dispatch-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-medium);
+  border-left: 4px solid var(--ninja-green);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.email-dispatch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.email-code-box {
+  background: var(--bg-card);
+  border: 1px dashed var(--ninja-green);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.code-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.code-number {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: var(--ninja-green);
+}
+
+.success-pop-icon {
+  font-size: 54px;
+  line-height: 1;
+  animation: modalFade 0.4s ease-out;
+}
+
+/* =============================================================================
+   Table Ninjas Sign Up Page & Interactive Role Checkbox Selector
+   ============================================================================= */
+.signup-card {
+  max-width: 640px;
+  width: 100%;
+}
+
+.signup-role-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 18px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 600px) {
+  .signup-role-selector {
+    grid-template-columns: 1fr;
+  }
+}
+
+.signup-role-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  user-select: none;
+}
+
+.signup-role-card:hover {
+  border-color: var(--ninja-green);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.signup-role-card.selected {
+  border-color: var(--ninja-green) !important;
+  background: rgba(20, 168, 0, 0.08) !important;
+  box-shadow: 0 0 0 1px var(--ninja-green), 0 8px 20px rgba(20, 168, 0, 0.15) !important;
+}
+
+.role-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.role-icon-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.role-icon-title .role-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.role-icon-title strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.role-choice-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+
+/* Native radio button overlay */
+.role-radio-native {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+  z-index: 2;
+}
+
+/* Visible checkbox indicator with checkmark */
+.role-checkbox-box {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border-medium);
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.signup-role-card:hover .role-checkbox-box {
+  border-color: var(--ninja-green);
+}
+
+.role-checkbox-box .check-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: #ffffff;
+}
+
+/* When selected, checkbox fills green with white checkmark */
+.signup-role-card.selected .role-checkbox-box {
+  background: var(--ninja-green);
+  border-color: var(--ninja-green);
+}
+
+.signup-role-card.selected .role-checkbox-box .check-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.role-card-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* =============================================================================
+   NOTIFICATIONS & MESSAGES FLYOUTS & DIRECT CHAT
+   ============================================================================= */
+.notification-dropdown-flyout,
+.messages-dropdown-flyout {
+  max-width: 90vw;
+  padding: 12px;
+}
+
+.notif-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.notif-item:last-child {
+  border-bottom: none;
+}
+
+.notif-item:hover {
+  background: var(--bg-card-hover);
+}
+
+.notif-item.unread {
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.notif-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+  background: var(--bg-muted);
+}
+
+.notif-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dark);
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+
+.notif-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.notif-time {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+
+.msg-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  align-items: center;
+}
+
+.msg-item:last-child {
+  border-bottom: none;
+}
+
+.msg-item:hover {
+  background: var(--bg-card-hover);
+}
+
+.msg-item.unread {
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.msg-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--ninja-green);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.msg-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.msg-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.msg-author {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.msg-time {
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+
+.msg-snippet {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-bubble {
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.chat-bubble.incoming {
+  align-self: flex-start;
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  color: var(--text-dark);
+  border-bottom-left-radius: 2px;
+}
+
+.chat-bubble.outgoing {
+  align-self: flex-end;
+  background: var(--ninja-green);
+  color: #fff;
+  border-bottom-right-radius: 2px;
+}
+
+.chat-bubble-time {
+  font-size: 10px;
+  margin-top: 4px;
+  display: block;
+  opacity: 0.75;
+  text-align: right;
 }
 
