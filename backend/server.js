@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const nodemailer = require('nodemailer');
 const pool = require('./db');
 const mockData = require('./mock_data');
+const pl = require('./procedure_layer');
 
 dotenv.config();
 
@@ -257,7 +258,7 @@ app.post('/api/auth/register', async (req, res) => {
     return res.status(400).json({ error: 'An account with this email address already exists. Please log in.' });
   }
 
-  const role = user_role === 'FREELANCER' ? 'FREELANCER' : 'CLIENT';
+  const role = user_role === 'FREELANCER' ? 'FREELANCER' : (user_role === 'DUAL' ? 'DUAL' : 'CLIENT');
   const newUserId = 100 + mockData.users.length;
   const newUser = {
     user_id: newUserId,
@@ -268,11 +269,11 @@ app.post('/api/auth/register', async (req, res) => {
     phone: phone || '+1-555-0100',
     user_role: role,
     account_status: 'ACTIVE',
-    company_name: role === 'CLIENT' ? (company_name || `${first_name}'s Ventures`) : null,
+    company_name: (role === 'CLIENT' || role === 'DUAL') ? (company_name || `${first_name}'s Ventures`) : null,
     total_spent: 0,
     jobs_posted_count: 0,
-    professional_title: role === 'FREELANCER' ? (professional_title || 'Independent Professional') : null,
-    hourly_rate: role === 'FREELANCER' ? 60.00 : null,
+    professional_title: (role === 'FREELANCER' || role === 'DUAL') ? (professional_title || 'Independent Professional') : null,
+    hourly_rate: (role === 'FREELANCER' || role === 'DUAL') ? 60.00 : null,
     average_rating: 5.0,
     jobs_completed_count: 0,
     total_earnings: 0
@@ -281,21 +282,22 @@ app.post('/api/auth/register', async (req, res) => {
   userCustomPasswords.set(cleanEmail, password);
   mockData.users.push(newUser);
 
-  // Try saving to MySQL if connected
+  // Save to MySQL via Stored Procedure sp_register_user if connected
   try {
-    const [result] = await pool.query(
-      `INSERT INTO users (email, password_hash, first_name, last_name, phone, user_role, account_status) VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE')`,
-      [cleanEmail, password, first_name, last_name, phone || null, role]
-    );
-    if (result && result.insertId) {
-      newUser.user_id = result.insertId;
-      if (role === 'CLIENT') {
-        await pool.query(`INSERT INTO clients (client_id, company_name) VALUES (?, ?)`, [result.insertId, company_name || `${first_name}'s Ventures`]);
-      } else {
-        await pool.query(`INSERT INTO freelancers (freelancer_id, professional_title, hourly_rate) VALUES (?, ?, 60.00)`, [result.insertId, professional_title || 'Independent Professional']);
+    const userId = await pl.registerUser(cleanEmail, password, first_name.trim(), last_name.trim(), phone || '+1-555-0100', role);
+    if (userId) {
+      newUser.user_id = userId;
+      if (role === 'CLIENT' || role === 'DUAL') {
+        await pool.query(`INSERT INTO clients (client_id, company_name) VALUES (?, ?) ON DUPLICATE KEY UPDATE company_name = VALUES(company_name)`, [userId, company_name || `${first_name}'s Ventures`]);
+      }
+      if (role === 'FREELANCER' || role === 'DUAL') {
+        await pool.query(`INSERT INTO freelancers (freelancer_id, professional_title, hourly_rate) VALUES (?, ?, 60.00) ON DUPLICATE KEY UPDATE professional_title = VALUES(professional_title)`, [userId, professional_title || 'Independent Professional']);
       }
     }
   } catch (err) {
+    if (err.sqlState === '45000') {
+      return res.status(400).json({ error: err.message });
+    }
     // In-memory fallback
   }
 
@@ -343,153 +345,136 @@ You requested to reset your password for Table Ninjas (${cleanEmail}).
 
 Your 6-digit confirmation code is: ${code}
 
-This code will expire in 15 minutes. If you did not make this request, please disregard this email.
+This code will expire in 15 minutes. If you did not request this reset, you can safely ignore this email.
 
-Table Ninjas Security Team`;
+Best regards,
+Table Ninjas Team`;
 
   const mailHtml = `
-    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
-      <h2 style="color: #14a800; margin-top: 0;">Table Ninjas Password Reset</h2>
-      <p>Hello <strong>${matchedUser.first_name || 'User'}</strong>,</p>
-      <p>You requested a confirmation code to reset the password for your Table Ninjas account (<strong>${cleanEmail}</strong>).</p>
-      <div style="background: #f0fdf4; border: 2px dashed #14a800; border-radius: 8px; padding: 18px; text-align: center; margin: 20px 0;">
-        <span style="font-size: 13px; color: #475569; display: block; margin-bottom: 6px; font-weight: 600;">Your 6-Digit Confirmation Code:</span>
-        <span style="font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #14a800;">${code}</span>
+    <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="color: #6366f1; margin: 0; font-size: 24px;">Table Ninjas</h2>
+        <p style="color: #64748b; font-size: 14px; margin-top: 4px;">Freelance Marketplace Security</p>
       </div>
-      <p style="font-size: 13px; color: #64748b; line-height: 1.5;">Please enter this code on the verification screen to set your new password. This code expires in 15 minutes.</p>
-      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-      <small style="color: #94a3b8;">Table Ninjas &bull; CS203 DBMS Project &bull; SVNIT Surat</small>
+      <p style="font-size: 15px; color: #334155;">Hello <strong>${matchedUser.first_name || 'User'}</strong>,</p>
+      <p style="font-size: 14px; color: #475569; line-height: 1.5;">We received a request to reset the password for your account (<strong>${cleanEmail}</strong>).</p>
+      <div style="background: #f1f5f9; border-radius: 8px; padding: 18px; text-align: center; margin: 24px 0;">
+        <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Confirmation Code</span>
+        <div style="font-size: 32px; font-weight: bold; color: #1e293b; letter-spacing: 6px; margin-top: 8px;">${code}</div>
+      </div>
+      <p style="font-size: 13px; color: #64748b;">This code is valid for <strong>15 minutes</strong>. If you did not request this, please disregard this email.</p>
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+      <p style="font-size: 12px; color: #94a3b8; text-align: center;">Table Ninjas Marketplace Platform &copy; 2026</p>
     </div>
   `;
 
-  // Dispatch email with nodemailer
   const transporter = getMailTransporter();
   let emailDispatched = false;
-  let smtpErrorMessage = null;
 
   if (transporter) {
     try {
+      const smtpUser = process.env.SMTP_USER ? process.env.SMTP_USER.trim() : null;
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || `Table Ninjas Security <${process.env.SMTP_USER}>`,
+        from: `"Table Ninjas Support" <${smtpUser || 'support@tableninjas.io'}>`,
         to: cleanEmail,
         subject: mailSubject,
         text: mailText,
         html: mailHtml
       });
       emailDispatched = true;
-      console.log(`[EMAIL DISPATCH] Sent confirmation code directly to registered email: ${cleanEmail}`);
+      console.log(`[AUTH EMAIL] Password reset code dispatched via SMTP to: ${cleanEmail}`);
     } catch (sendErr) {
-      smtpErrorMessage = sendErr.message;
-      console.warn(`[EMAIL DISPATCH] SMTP error delivering to ${cleanEmail}:`, sendErr.message);
+      console.warn(`[AUTH EMAIL] SMTP send failed (${sendErr.message}). Falling back to in-memory code delivery.`);
     }
   } else {
-    console.log(`[SECURE AUTH GATEWAY] No active SMTP configured in .env. Private code for ${cleanEmail}: [ ${code} ]`);
-  }
-
-  // Always log securely on server console for private verification
-  console.log(`[SECURE AUTH GATEWAY] Private confirmation code for ${cleanEmail}: [ ${code} ]`);
-
-  if (transporter && !emailDispatched) {
-    return res.status(500).json({
-      error: `Failed to dispatch email via SMTP: ${smtpErrorMessage}. Please verify your Gmail/SMTP App Password in backend/.env.`
-    });
+    console.log(`[AUTH EMAIL] Real SMTP not configured in .env. Reset code for ${cleanEmail} is: ${code}`);
   }
 
   res.json({
     success: true,
-    has_smtp: Boolean(transporter),
-    message: emailDispatched
-      ? `A 6-digit confirmation code has been dispatched directly to your registered email (${cleanEmail}). Please check your inbox and spam folder.`
-      : `Confirmation code generated. To receive real emails in your inbox, set your Gmail credentials in backend/.env (or check your server terminal console).`,
-    email: cleanEmail
+    message: emailDispatched 
+      ? `Confirmation code sent to ${cleanEmail}. Please check your inbox and spam folder.`
+      : `Confirmation code generated for ${cleanEmail}.`,
+    email: cleanEmail,
+    emailDispatched,
+    devCode: transporter ? undefined : code
   });
 });
 
-// 4. Reset Password Endpoint (Verifies permission code and updates password)
-app.post('/api/auth/reset-password', async (req, res) => {
-  const { email, code, new_password } = req.body;
-  if (!email || !code || !new_password) {
-    return res.status(400).json({ error: 'Please provide email, verification code, and new password' });
-  }
-
-  if (new_password.length < 6) {
-    return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+// 4. Verify Confirmation Code Endpoint
+app.post('/api/auth/verify-reset-code', (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) {
+    return res.status(400).json({ error: 'Email and confirmation code are required.' });
   }
 
   const cleanEmail = email.trim().toLowerCase();
-  const record = resetVerificationCodes.get(cleanEmail);
+  const stored = resetVerificationCodes.get(cleanEmail);
 
-  if (!record || record.code !== String(code).trim()) {
-    return res.status(400).json({ error: 'Invalid or expired permission verification code. Please check your email code or request a new one.' });
+  if (!stored) {
+    return res.status(400).json({ error: 'No active reset request found for this email. Please request a new code.' });
   }
 
-  if (Date.now() > record.expires) {
+  if (Date.now() > stored.expires) {
     resetVerificationCodes.delete(cleanEmail);
-    return res.status(400).json({ error: 'Verification code has expired. Please request a new one.' });
+    return res.status(400).json({ error: 'Confirmation code has expired. Please request a new one.' });
   }
 
-  // Update password in memory
-  userCustomPasswords.set(cleanEmail, new_password);
-  resetVerificationCodes.delete(cleanEmail);
-
-  // Update in mockData if user exists
-  const u = mockData.users.find(user => user.email.toLowerCase() === cleanEmail);
-  if (u) {
-    u.password = new_password;
+  if (stored.code !== code.toString().trim()) {
+    return res.status(400).json({ error: 'Invalid confirmation code. Please verify and try again.' });
   }
 
-  // Update in MySQL if connected
-  try {
-    await pool.query(`UPDATE users SET password_hash = ? WHERE LOWER(email) = ?`, [new_password, cleanEmail]);
-  } catch (err) {
-    // In-memory fallback
-  }
-
-  res.json({ message: 'Password changed successfully' });
+  res.json({ success: true, message: 'Confirmation code verified successfully.' });
 });
 
-// 5. Permanent Account Deletion Endpoint
-app.post('/api/auth/delete-account', async (req, res) => {
-  const { user_id, email } = req.body;
-  if (!user_id && !email) {
-    return res.status(400).json({ error: 'Please specify the user account to permanently delete' });
+// 5. Reset Password Endpoint (Sets new password)
+app.post('/api/auth/reset-password', async (req, res) => {
+  const { email, code, newPassword } = req.body;
+  if (!email || !code || !newPassword) {
+    return res.status(400).json({ error: 'Email, code, and new password are required.' });
   }
 
-  const cleanEmail = email ? email.trim().toLowerCase() : null;
-  const uid = user_id ? parseInt(user_id, 10) : null;
+  const cleanEmail = email.trim().toLowerCase();
+  const stored = resetVerificationCodes.get(cleanEmail);
 
-  // 1. Delete from MySQL database if connected
+  if (!stored || stored.code !== code.toString().trim()) {
+    return res.status(400).json({ error: 'Invalid or expired confirmation code session.' });
+  }
+
+  // Update in-memory user password
+  userCustomPasswords.set(cleanEmail, newPassword);
+  resetVerificationCodes.delete(cleanEmail);
+
+  // Try updating in MySQL if available
   try {
-    const conn = await pool.getConnection();
-    try {
-      await conn.beginTransaction();
-
-      let targetId = uid;
-      if (!targetId && cleanEmail) {
-        const [rows] = await conn.query('SELECT user_id FROM users WHERE LOWER(email) = ?', [cleanEmail]);
-        if (rows.length > 0) targetId = rows[0].user_id;
-      }
-
-      if (targetId) {
-        await conn.query('DELETE FROM reviews WHERE reviewer_id = ? OR freelancer_id = ?', [targetId, targetId]);
-        await conn.query('DELETE FROM payments WHERE payer_id = ? OR payee_id = ?', [targetId, targetId]);
-        await conn.query('DELETE FROM proposals WHERE freelancer_id = ?', [targetId]);
-        await conn.query('DELETE FROM contracts WHERE client_id = ? OR freelancer_id = ?', [targetId, targetId]);
-        await conn.query('DELETE FROM job_skills WHERE job_id IN (SELECT job_id FROM jobs WHERE client_id = ?)', [targetId]);
-        await conn.query('DELETE FROM jobs WHERE client_id = ?', [targetId]);
-        await conn.query('DELETE FROM freelancer_skills WHERE freelancer_id = ?', [targetId]);
-        await conn.query('DELETE FROM freelancers WHERE freelancer_id = ?', [targetId]);
-        await conn.query('DELETE FROM clients WHERE client_id = ?', [targetId]);
-        await conn.query('DELETE FROM users WHERE user_id = ?', [targetId]);
-      }
-      await conn.commit();
-    } catch (txErr) {
-      await conn.rollback();
-    } finally {
-      conn.release();
-    }
+    await pool.query('UPDATE users SET password_hash = ? WHERE LOWER(email) = ?', [newPassword, cleanEmail]);
   } catch (dbErr) {
     // In-memory fallback
+  }
+
+  console.log(`[AUTH] Password successfully updated for ${cleanEmail}`);
+  res.json({ success: true, message: 'Password has been successfully updated. You can now log in.' });
+});
+
+// 6. Delete Account Endpoint (Permanent removal)
+app.delete('/api/auth/delete-account', async (req, res) => {
+  const { user_id, email } = req.body;
+  if (!user_id && !email) {
+    return res.status(400).json({ error: 'User ID or email is required to delete account.' });
+  }
+
+  const uid = user_id ? parseInt(user_id, 10) : null;
+  const cleanEmail = email ? email.trim().toLowerCase() : null;
+
+  // 1. Delete from database if available
+  try {
+    if (uid) {
+      await pool.query('DELETE FROM users WHERE user_id = ?', [uid]);
+    } else if (cleanEmail) {
+      await pool.query('DELETE FROM users WHERE LOWER(email) = ?', [cleanEmail]);
+    }
+  } catch (dbErr) {
+    console.warn('[AUTH] DB account deletion failed (fallback to in-memory):', dbErr.message);
   }
 
   // 2. Delete from in-memory mock datasets
@@ -654,29 +639,28 @@ app.post('/api/jobs', async (req, res) => {
   }
 
   try {
-    const conn = await pool.getConnection();
-    try {
-      await conn.beginTransaction();
-      const [result] = await conn.query(`
-        INSERT INTO jobs (client_id, title, description, category, payment_type, budget, experience_level, duration_days, deadline, job_status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN')
-      `, [client_id, title, description, category, payment_type || 'FIXED_PRICE', budget, experience_level || 'INTERMEDIATE', duration_days, deadline]);
+    const jobId = await pl.insertJob(
+      parseInt(client_id, 10),
+      title,
+      description,
+      category,
+      payment_type || 'FIXED_PRICE',
+      parseFloat(budget),
+      experience_level || 'INTERMEDIATE',
+      parseInt(duration_days, 10),
+      deadline
+    );
 
-      const jobId = result.insertId;
-      if (Array.isArray(skill_ids) && skill_ids.length > 0) {
-        const skillValues = skill_ids.map(sid => [jobId, parseInt(sid, 10), true]);
-        await conn.query(`INSERT INTO job_skills (job_id, skill_id, is_mandatory) VALUES ?`, [skillValues]);
-      }
-      await conn.query(`UPDATE clients SET jobs_posted_count = jobs_posted_count + 1 WHERE client_id = ?`, [client_id]);
-      await conn.commit();
-      return res.status(201).json({ message: 'Job posted successfully', job_id: jobId });
-    } catch (e) {
-      await conn.rollback();
-      throw e;
-    } finally {
-      conn.release();
+    if (Array.isArray(skill_ids) && skill_ids.length > 0) {
+      const skillValues = skill_ids.map(sid => [jobId, parseInt(sid, 10), true]);
+      await pool.query(`INSERT INTO job_skills (job_id, skill_id, is_mandatory) VALUES ?`, [skillValues]);
     }
+
+    res.status(201).json({ message: 'Job posted successfully via Stored Procedure sp_insert_job', job_id: jobId });
   } catch (err) {
+    if (err.sqlState === '45000') {
+      return res.status(400).json({ error: err.message });
+    }
     const client = mockData.users.find(u => u.user_id === parseInt(client_id, 10)) || mockData.users[0];
     const newJob = {
       job_id: mockData.jobs.length + 1,
@@ -705,10 +689,12 @@ app.post('/api/jobs', async (req, res) => {
 app.delete('/api/jobs/:id', async (req, res) => {
   const jobId = parseInt(req.params.id, 10);
   try {
-    const [result] = await pool.query('DELETE FROM jobs WHERE job_id = ?', [jobId]);
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'Job not found' });
-    res.json({ message: 'Job deleted successfully' });
+    await pl.deleteJob(jobId);
+    res.json({ message: 'Job deleted successfully via Stored Procedure sp_delete_job' });
   } catch (err) {
+    if (err.sqlState === '45000') {
+      return res.status(400).json({ error: err.message });
+    }
     const idx = mockData.jobs.findIndex(j => j.job_id === jobId);
     if (idx !== -1) {
       mockData.jobs.splice(idx, 1);
@@ -764,12 +750,22 @@ app.post('/api/proposals', async (req, res) => {
   }
 
   try {
-    const [result] = await pool.query(`
-      INSERT INTO proposals (job_id, freelancer_id, bid_amount, estimated_delivery_days, cover_letter, proposal_status)
-      VALUES (?, ?, ?, ?, ?, 'SUBMITTED')
-    `, [job_id, freelancer_id, bid_amount, estimated_delivery_days, cover_letter]);
-    res.status(201).json({ message: 'Proposal submitted successfully', proposal_id: result.insertId });
+    const proposalId = await pl.submitProposal(
+      parseInt(job_id, 10),
+      parseInt(freelancer_id, 10),
+      parseFloat(bid_amount),
+      parseInt(estimated_delivery_days, 10),
+      cover_letter
+    );
+
+    res.status(201).json({ message: 'Proposal submitted successfully via Stored Procedure sp_submit_proposal', proposal_id: proposalId });
   } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({ error: 'You have already submitted a proposal for this job.' });
+    }
+    if (err.sqlState === '45000') {
+      return res.status(400).json({ error: err.message });
+    }
     const freelancer = mockData.users.find(u => u.user_id === parseInt(freelancer_id, 10)) || mockData.users[5];
     const job = mockData.jobs.find(j => j.job_id === parseInt(job_id, 10)) || mockData.jobs[0];
     const newProposal = {
@@ -889,55 +885,18 @@ app.get('/api/contracts/:id', async (req, res) => {
   }
 });
 
+// Award Contract from Proposal via Stored Procedure sp_award_contract
 app.post('/api/contracts/award', async (req, res) => {
   const { proposal_id } = req.body;
   if (!proposal_id) return res.status(400).json({ error: 'proposal_id is required' });
 
   try {
-    const conn = await pool.getConnection();
-    try {
-      await conn.beginTransaction();
-      const [[proposal]] = await conn.query(`
-        SELECT p.*, j.client_id, j.title, j.job_status
-        FROM proposals p
-        JOIN jobs j ON p.job_id = j.job_id
-        WHERE p.proposal_id = ?
-      `, [proposal_id]);
-
-      if (!proposal) {
-        await conn.rollback();
-        return res.status(404).json({ error: 'Proposal not found' });
-      }
-
-      await conn.query(`UPDATE proposals SET proposal_status = 'ACCEPTED' WHERE proposal_id = ?`, [proposal_id]);
-      await conn.query(`UPDATE proposals SET proposal_status = 'REJECTED' WHERE job_id = ? AND proposal_id <> ?`, [proposal.job_id, proposal_id]);
-      await conn.query(`UPDATE jobs SET job_status = 'IN_PROGRESS' WHERE job_id = ?`, [proposal.job_id]);
-
-      const [contractResult] = await conn.query(`
-        INSERT INTO contracts (job_id, proposal_id, client_id, freelancer_id, agreed_amount, start_date, contract_status)
-        VALUES (?, ?, ?, ?, ?, CURRENT_DATE, 'ACTIVE')
-      `, [proposal.job_id, proposal_id, proposal.client_id, proposal.freelancer_id, proposal.bid_amount]);
-
-      const contractId = contractResult.insertId;
-      const halfAmount = (proposal.bid_amount / 2).toFixed(2);
-      const restAmount = (proposal.bid_amount - halfAmount).toFixed(2);
-
-      await conn.query(`
-        INSERT INTO milestones (contract_id, milestone_seq_no, title, deliverable_description, amount, due_date, milestone_status)
-        VALUES 
-        (?, 1, 'Phase 1: Initial Architecture & Prototype', 'Core design, architecture, and prototype.', ?, DATE_ADD(CURRENT_DATE, INTERVAL 14 DAY), 'FUNDED'),
-        (?, 2, 'Phase 2: Final Implementation & QA Testing', 'Final implementation and testing.', ?, DATE_ADD(CURRENT_DATE, INTERVAL 28 DAY), 'PENDING')
-      `, [contractId, halfAmount, contractId, restAmount]);
-
-      await conn.commit();
-      return res.status(201).json({ message: 'Contract awarded successfully', contract_id: contractId });
-    } catch (e) {
-      await conn.rollback();
-      throw e;
-    } finally {
-      conn.release();
-    }
+    const contractId = await pl.awardContract(parseInt(proposal_id, 10));
+    res.status(201).json({ message: 'Contract awarded and escrow funded successfully via Stored Procedure sp_award_contract', contract_id: contractId });
   } catch (err) {
+    if (err.sqlState === '45000') {
+      return res.status(400).json({ error: err.message });
+    }
     const prop = mockData.proposals.find(p => p.proposal_id === parseInt(proposal_id, 10)) || mockData.proposals[0];
     const job = mockData.jobs.find(j => j.job_id === prop.job_id) || mockData.jobs[0];
     prop.proposal_status = 'ACCEPTED';
@@ -984,17 +943,21 @@ app.post('/api/contracts/award', async (req, res) => {
   }
 });
 
+// Submit Deliverables for Milestone via Stored Procedure sp_submit_milestone
 app.patch('/api/milestones/:contract_id/:seq_no/submit', async (req, res) => {
   const { contract_id, seq_no } = req.params;
   const { submission_notes } = req.body;
+  if (!submission_notes) {
+    return res.status(400).json({ error: 'submission_notes are required' });
+  }
+
   try {
-    const [result] = await pool.query(`
-      UPDATE milestones 
-      SET submission_notes = ?, submission_date = NOW(), milestone_status = 'IN_REVIEW'
-      WHERE contract_id = ? AND milestone_seq_no = ?
-    `, [submission_notes, contract_id, seq_no]);
-    res.json({ message: 'Milestone deliverables submitted successfully' });
+    await pl.submitMilestone(parseInt(contract_id, 10), parseInt(seq_no, 10), submission_notes);
+    res.json({ message: 'Milestone deliverables submitted successfully via Stored Procedure sp_submit_milestone' });
   } catch (err) {
+    if (err.sqlState === '45000') {
+      return res.status(400).json({ error: err.message });
+    }
     const contract = mockData.contracts.find(c => c.contract_id === parseInt(contract_id, 10));
     if (contract && contract.milestones) {
       const ms = contract.milestones.find(m => m.milestone_seq_no === parseInt(seq_no, 10));
@@ -1008,24 +971,16 @@ app.patch('/api/milestones/:contract_id/:seq_no/submit', async (req, res) => {
   }
 });
 
+// Client Approves Milestone and Releases Payment via Stored Procedure sp_approve_milestone_and_pay
 app.post('/api/milestones/:contract_id/:seq_no/approve-pay', async (req, res) => {
   const { contract_id, seq_no } = req.params;
   try {
-    const conn = await pool.getConnection();
-    try {
-      await conn.beginTransaction();
-      await conn.query(`
-        UPDATE milestones SET milestone_status = 'APPROVED' WHERE contract_id = ? AND milestone_seq_no = ?
-      `, [contract_id, seq_no]);
-      await conn.commit();
-      return res.json({ message: 'Milestone approved and payment released successfully' });
-    } catch (e) {
-      await conn.rollback();
-      throw e;
-    } finally {
-      conn.release();
-    }
+    await pl.approveMilestoneAndPay(parseInt(contract_id, 10), parseInt(seq_no, 10));
+    res.json({ message: 'Milestone approved and payment released successfully via Stored Procedure sp_approve_milestone_and_pay' });
   } catch (err) {
+    if (err.sqlState === '45000') {
+      return res.status(400).json({ error: err.message });
+    }
     const contract = mockData.contracts.find(c => c.contract_id === parseInt(contract_id, 10));
     if (contract && contract.milestones) {
       const ms = contract.milestones.find(m => m.milestone_seq_no === parseInt(seq_no, 10));
@@ -1037,27 +992,84 @@ app.post('/api/milestones/:contract_id/:seq_no/approve-pay', async (req, res) =>
   }
 });
 
+// Mark Contract Completed via Stored Procedure sp_complete_contract
 app.post('/api/contracts/:id/complete', async (req, res) => {
   const contractId = parseInt(req.params.id, 10);
   try {
-    await pool.query(`UPDATE contracts SET contract_status = 'COMPLETED', end_date = CURRENT_DATE WHERE contract_id = ?`, [contractId]);
-    res.json({ message: 'Contract and Job marked as COMPLETED successfully' });
+    await pl.completeContract(contractId);
+    res.json({ message: 'Contract and Job marked as COMPLETED successfully via Stored Procedure sp_complete_contract' });
   } catch (err) {
+    if (err.sqlState === '45000') {
+      return res.status(400).json({ error: err.message });
+    }
     const contract = mockData.contracts.find(c => c.contract_id === contractId);
     if (contract) contract.contract_status = 'COMPLETED';
     res.json({ message: 'Contract marked as COMPLETED successfully' });
   }
 });
 
-app.post('/api/reviews', async (req, res) => {
-  const { contract_id, reviewer_id, reviewee_id, overall_rating, feedback_comment } = req.body;
+// -----------------------------------------------------------------------------
+// 7. Reviews Endpoints
+// -----------------------------------------------------------------------------
+app.get('/api/reviews', async (req, res) => {
+  const { reviewee_id, contract_id } = req.query;
   try {
-    const [result] = await pool.query(`
-      INSERT INTO reviews (contract_id, reviewer_id, reviewee_id, overall_rating, communication_rating, quality_rating, adherence_rating, feedback_comment)
-      VALUES (?, ?, ?, ?, 5, 5, 5, ?)
-    `, [contract_id, reviewer_id, reviewee_id, overall_rating, feedback_comment]);
-    res.status(201).json({ message: 'Review submitted successfully', review_id: result.insertId });
+    let query = `
+      SELECT r.*, 
+             CONCAT(ur.first_name, ' ', ur.last_name) AS reviewer_name,
+             CONCAT(ue.first_name, ' ', ue.last_name) AS reviewee_name,
+             j.title AS job_title
+      FROM reviews r
+      JOIN users ur ON r.reviewer_id = ur.user_id
+      JOIN users ue ON r.reviewee_id = ue.user_id
+      JOIN contracts c ON r.contract_id = c.contract_id
+      JOIN jobs j ON c.job_id = j.job_id
+      WHERE 1=1
+    `;
+    const params = [];
+    if (reviewee_id) {
+      query += ' AND r.reviewee_id = ?';
+      params.push(reviewee_id);
+    }
+    if (contract_id) {
+      query += ' AND r.contract_id = ?';
+      params.push(contract_id);
+    }
+    query += ' ORDER BY r.created_at DESC';
+    const [reviews] = await pool.query(query, params);
+    res.json(reviews);
   } catch (err) {
+    res.json(mockData.reviews);
+  }
+});
+
+app.post('/api/reviews', async (req, res) => {
+  const { contract_id, reviewer_id, reviewee_id, overall_rating, communication_rating, quality_rating, adherence_rating, feedback_comment } = req.body;
+
+  if (!contract_id || !reviewer_id || !reviewee_id || !overall_rating || !feedback_comment) {
+    return res.status(400).json({ error: 'Missing required review fields' });
+  }
+
+  try {
+    const reviewId = await pl.submitReview(
+      parseInt(contract_id, 10),
+      parseInt(reviewer_id, 10),
+      parseInt(reviewee_id, 10),
+      parseInt(overall_rating, 10),
+      parseInt(communication_rating || 5, 10),
+      parseInt(quality_rating || 5, 10),
+      parseInt(adherence_rating || 5, 10),
+      feedback_comment
+    );
+
+    res.status(201).json({ message: 'Review submitted successfully via Stored Procedure sp_submit_review', review_id: reviewId });
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({ error: 'You have already submitted a review for this contract.' });
+    }
+    if (err.sqlState === '45000') {
+      return res.status(400).json({ error: err.message });
+    }
     const contract = mockData.contracts.find(c => c.contract_id === parseInt(contract_id, 10));
     const reviewer = mockData.users.find(u => u.user_id === parseInt(reviewer_id, 10)) || mockData.users[0];
     if (contract) {
@@ -1076,7 +1088,7 @@ app.post('/api/reviews', async (req, res) => {
 });
 
 // -----------------------------------------------------------------------------
-// 7. Disputes Endpoints
+// 8. Disputes Endpoints (with RBAC check & Stored Procedure)
 // -----------------------------------------------------------------------------
 app.get('/api/disputes', async (req, res) => {
   const { admin_id } = req.query;
@@ -1129,13 +1141,12 @@ app.patch('/api/disputes/:id/resolve', async (req, res) => {
     }
 
     const adminUser = adminCheck[0];
-    await pool.query(`
-      UPDATE disputes 
-      SET dispute_status = 'RESOLVED', resolution_type = ?, resolved_by_admin_id = ?, resolved_at = NOW()
-      WHERE dispute_id = ?
-    `, [resolution_type, admin_id, disputeId]);
-    return res.json({ message: `Dispute successfully resolved by Administrator (${adminUser.first_name} ${adminUser.last_name})` });
+    await pl.resolveDispute(disputeId, resolution_type, admin_id);
+    return res.json({ message: `Dispute successfully resolved by Administrator (${adminUser.first_name} ${adminUser.last_name}) via Stored Procedure sp_resolve_dispute` });
   } catch (err) {
+    if (err.sqlState === '45000') {
+      return res.status(400).json({ error: err.message });
+    }
     // In-memory fallback
     const u = mockData.users.find(u => u.user_id === parseInt(admin_id, 10));
     if (!u || u.user_role !== 'ADMIN') {
@@ -1153,49 +1164,49 @@ app.patch('/api/disputes/:id/resolve', async (req, res) => {
 });
 
 // -----------------------------------------------------------------------------
-// 8. Analytics & Reporting Endpoints
+// 9. Analytics & Reporting Endpoints (via PL/SQL Stored Procedures & Search)
 // -----------------------------------------------------------------------------
 app.get('/api/reports/top-freelancers', async (req, res) => {
   const { search } = req.query;
   try {
-    let query = `
-      SELECT 
-        f.freelancer_id,
-        CONCAT(u.first_name, ' ', u.last_name) AS freelancer_name,
-        u.email,
-        f.professional_title,
-        f.hourly_rate,
-        f.average_rating,
-        f.jobs_completed_count,
-        f.total_earnings,
-        COUNT(DISTINCT r.review_id) AS reviews_count,
-        GROUP_CONCAT(DISTINCT s.skill_name ORDER BY s.skill_name SEPARATOR ', ') AS top_skills
-      FROM freelancers f
-      JOIN users u ON f.freelancer_id = u.user_id
-      LEFT JOIN reviews r ON f.freelancer_id = r.reviewee_id
-      LEFT JOIN freelancer_skills fs ON f.freelancer_id = fs.freelancer_id
-      LEFT JOIN skills s ON fs.skill_id = s.skill_id
-    `;
-    const params = [];
+    let report;
     if (search) {
-      query += ` WHERE (
-        CONCAT(u.first_name, ' ', u.last_name) LIKE ? 
-        OR u.email LIKE ? 
-        OR f.professional_title LIKE ? 
-        OR f.freelancer_id IN (
-          SELECT fs2.freelancer_id FROM freelancer_skills fs2 
-          JOIN skills s2 ON fs2.skill_id = s2.skill_id 
-          WHERE s2.skill_name LIKE ?
+      let query = `
+        SELECT 
+          f.freelancer_id,
+          CONCAT(u.first_name, ' ', u.last_name) AS freelancer_name,
+          u.email,
+          f.professional_title,
+          f.hourly_rate,
+          f.average_rating,
+          f.jobs_completed_count,
+          f.total_earnings,
+          COUNT(DISTINCT r.review_id) AS reviews_count,
+          GROUP_CONCAT(DISTINCT s.skill_name ORDER BY s.skill_name SEPARATOR ', ') AS top_skills
+        FROM freelancers f
+        JOIN users u ON f.freelancer_id = u.user_id
+        LEFT JOIN reviews r ON f.freelancer_id = r.reviewee_id
+        LEFT JOIN freelancer_skills fs ON f.freelancer_id = fs.freelancer_id
+        LEFT JOIN skills s ON fs.skill_id = s.skill_id
+        WHERE (
+          CONCAT(u.first_name, ' ', u.last_name) LIKE ? 
+          OR u.email LIKE ? 
+          OR f.professional_title LIKE ? 
+          OR f.freelancer_id IN (
+            SELECT fs2.freelancer_id FROM freelancer_skills fs2 
+            JOIN skills s2 ON fs2.skill_id = s2.skill_id 
+            WHERE s2.skill_name LIKE ?
+          )
         )
-      )`;
-      params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+        GROUP BY f.freelancer_id, u.first_name, u.last_name, u.email, f.professional_title,
+                 f.hourly_rate, f.average_rating, f.jobs_completed_count, f.total_earnings
+        ORDER BY f.average_rating DESC, f.total_earnings DESC, f.jobs_completed_count DESC
+      `;
+      const [results] = await pool.query(query, [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`]);
+      report = results;
+    } else {
+      report = await pl.topFreelancers();
     }
-    query += `
-      GROUP BY f.freelancer_id, u.first_name, u.last_name, u.email, f.professional_title,
-               f.hourly_rate, f.average_rating, f.jobs_completed_count, f.total_earnings
-      ORDER BY f.average_rating DESC, f.total_earnings DESC, f.jobs_completed_count DESC
-    `;
-    const [report] = await pool.query(query, params);
     res.json(report);
   } catch (err) {
     let list = [...mockData.leaderboard];
@@ -1219,24 +1230,7 @@ app.get('/api/leaderboard', async (req, res) => {
 
 app.get('/api/reports/client-summary', async (req, res) => {
   try {
-    const [summary] = await pool.query(`
-      SELECT 
-        c.client_id,
-        c.company_name,
-        CONCAT(u.first_name, ' ', u.last_name) AS contact_person,
-        c.city,
-        c.country,
-        c.total_spent,
-        c.jobs_posted_count,
-        COUNT(DISTINCT ct.contract_id) AS total_contracts_awarded,
-        COALESCE(SUM(ct.agreed_amount), 0.00) AS total_contract_commitments,
-        COUNT(DISTINCT CASE WHEN ct.contract_status = 'ACTIVE' THEN ct.contract_id END) AS active_contracts
-      FROM clients c
-      JOIN users u ON c.client_id = u.user_id
-      LEFT JOIN contracts ct ON c.client_id = ct.client_id
-      GROUP BY c.client_id, c.company_name, u.first_name, u.last_name, c.city, c.country, c.total_spent, c.jobs_posted_count
-      ORDER BY c.total_spent DESC
-    `);
+    const summary = await pl.clientSummary();
     res.json(summary);
   } catch (err) {
     res.json(mockData.clientSummary);
